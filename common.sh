@@ -24,9 +24,10 @@ HISTO_RESIZE_RATIO=5%
 # current dataset
 sample="F"
 
+# obsolete
 # zoom factor of low and high resolution histology
-LOWRESZOOM=0.01
-HIRESZOOM=0.05
+# LOWRESZOOM=0.01
+# HIRESZOOM=0.05
 
 # Histology Orientation information
 # NOTE: if the you don't want to flip, then HISTO_FLIP=""
