@@ -1,5 +1,11 @@
 #!/bin/bash
 # Set up the script environment
+
+# padding all the images in $NIFTIDIR
+# with specified ratio 
+#  $HISTO_PAD_PERCENT, defined in common.sh
+# to direcotry $GRAYDIR
+
 source ../common.sh
 
 

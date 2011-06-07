@@ -1,6 +1,9 @@
 #!/bin/bash
 # ==============================
 # LINEAR registration script (1)
+# pairwise registration:
+#  register two 2D slices in the neighborhood range
+#  ($LINEAR_RECON_SEARCH_RANGE)
 # ==============================
 
 source ../common.sh
@@ -40,7 +43,7 @@ do
   moving=`head -n $i $listfile | tail -n 1`
   
   # Set the upper bound for the inner loop
-  let k=i+5;
+  let k=i+$LINEAR_RECON_SEARCH_RANGE;
 
   if (( $nfiles < $k ))
   then 

@@ -81,6 +81,7 @@ function ShortestPath()
   echo "Placed adjacency list into $adjfile"
 
   # Compute the file telling us the predecessor for each individual
+  # regpath computes the shortest path (??) to the reference slices
   $PROGDIR/regpath $adjfile $REFERENCE_SLICE 1.0 > $pathfile
   echo "Wrote predecessor info into $pathfile"
 }
@@ -243,6 +244,8 @@ then
 else
 	flip_option=''
 fi
+
+# question: change to Nick's program ConvertImageSeriess
 $PROGDIR/imageSeriesToVolume -o "$STACKINGDIR/volume/reslice_histo.nii.gz" \
                              -sx $HSPACEX -sy $HSPACEY -sz $HSPACEZ \
                              -i `ls -1 $STACKINGDIR/reslice/*.nii.gz`

@@ -34,10 +34,12 @@ sample="F"
 HISTO_FLIP="yz"
 HISTO_ORIENT="xzy"
 
+
+# obsolete
 # Voxel dimensions of the high resolution histology images
-HIHSPACEX=0.000504
-HIHSPACEY=0.000504
-HIHSPACEZ=0.165
+# HIHSPACEX=0.000504
+# HIHSPACEY=0.000504
+# HIHSPACEZ=0.165
 
 # Voxel dimensions of the low resolution histology images
 HSPACEX=0.0108
@@ -50,8 +52,9 @@ HISTO_PAD_PERCENT=30
 # NOTE: padding the histology images introduces an edge, so we should only do it if they are masked
 # before registration
 
+# obsolete: replaced by Atrops
 # threshold used for creating histology of masks
-MASK_HISTO_THRESH=0.56
+# MASK_HISTO_THRESH=0.56
 # note should be variable with slice
 
 # number of neighbouring slices that each histology slice is registered to during reconstruction step
@@ -61,11 +64,16 @@ LINEAR_RECON_SEARCH_RANGE=5
 # (0 = ANTS linear, 1 = ANTS deformable, 2 = FSL linear)
 LINEAR_RECON_ANTS=0
 
+# optional paramter if calling FSL
 # inter-slice registration transformation used during histology reconstruction (no. DOF=3,5,6)
+# 3 : translation + rotation (ANTS / FSL, LINEAR_RECON_ANTS= 0 / 2)
+# 5 : translation + scaling + rotation (only work with FSL, LINEAR_RECON_ANTS=2)
+# 6 : translation + scaling + shearing + rotation  (ANTS / FSL, LINEAR_RECON_ANTS= 0 / 2)
 LINEAR_RECON_TRANS=3
 
+# working in progress:
 # Number of slices to pad the histology volume at the front and back
-NUMPAD=3
+# NUMPAD=3
 
 # number of iterations for histology-MRI matching
 H2M_NITER=2
@@ -75,10 +83,13 @@ H2M_NITER=2
 M2H_USE_ANTS=1
 
 # flag for using deformable or affine registration of histology to mri slices
+# 0: only use affine
+# 1: use affine, then use deformable
 H2M_DEFORMABLE=0
 
+# obsolete
 # number of deformable histology iterations to run
-DEFORM_NITER=4
+# DEFORM_NITER=4
 
 # ------------------------------------------ PARAMTERS
 

@@ -1,6 +1,14 @@
 #!/bin/bash
 # ==============================
 # File converting
+# 1) convert each image in the raw directory to 
+# .png in $PNGDIR (input/histo/png)
+# and then to nii.gz file in the gray directory
+# $NIFTIDIR (input/histo/nii, currently defined in 
+#  common.sh)
+# 2) Downsampling is done here.
+# 3) Mask is generated (using Atropos) 
+#  here if no masks provided.
 # ==============================
 
 source ../common.sh
@@ -13,7 +21,7 @@ mkdir -p $PNGDIR
 # rm -rf $PNGDIR/*.*
 # rm -rf $NIFTIDIR/*.*
 
-# convert each image in the raw directory to nii.gz file in the gray directory
+
 # convert is required on the machine
 # use qsub
 # NOTE: here variables $img contain file extensions, they can vary

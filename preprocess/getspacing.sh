@@ -1,6 +1,14 @@
 #!/bin/bash
 # ==============================
 # get spacing of the image
+# from $GRAYDIR to $GRAYDIR (using the same 
+#  filename in the same directory)
+# also flip/permute axis of 3D Histo image
+# save in  VOLUMEPATH=$DATADIR/input/histo/volume
+# this is for visualization only
+# and also flip/permute axis of 3D MRI 
+# image in the reverse order
+# save in MRI_OUTDIR="$DATADIR/input/mri_oriented
 # ==============================
 
 source ../common.sh

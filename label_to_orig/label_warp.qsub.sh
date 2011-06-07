@@ -1,10 +1,20 @@
 #!/bin/bash
 # Set up the script environment
 #$ -cwd -S /bin/sh -o ./output -j y
+
+
+# compose all the transforms back to the original input histo slice
+# 1) compose from the iterative match procedure
+# 2) compose the shortest path procedure
+# 3) warp the MRI label (after iterative match) using the INVERSE of the previous
+#    composite result transform
+
 source ../common.sh
 
 ipad=$1
 num=$2
+
+
 
 for ((k=$H2M_NITER; k> 0; k--))
 do
@@ -17,6 +27,8 @@ $ANTSDIR/WarpImageMultiTransform 2 "$DEFORMDIR/reslice/label/2Ddeform_M2H_label_
                                    "$LABELDIR/padded/label_${ipad}.nii.gz" \
                                    `echo $(cat $LABELDIR/tx/label${ipad}.txt)` \
                                    --use-NN
+
+# unpad all images using the original size and padding ratio
 # the image of the unpadded size
 image=`ls $NIFTIDIR | grep "\.nii\.gz" | sed -e "s/\.nii\.gz//g" | head -n $num | tail -n 1`
 

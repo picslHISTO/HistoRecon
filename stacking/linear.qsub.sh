@@ -17,6 +17,8 @@ echo "3-parameter registration of ${moving} to ${fixed}..."
 
 echo $fixed $moving $mov2fix
 
+
+# question??? do we need this?
 # This command also warps the input image
 $ANTSDIR/ANTS 2 \
        -m MI["$GRAYDIR/${fixed}.nii.gz","$GRAYDIR/${moving}.nii.gz",1,32] \
