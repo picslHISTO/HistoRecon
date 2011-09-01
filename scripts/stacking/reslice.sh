@@ -100,7 +100,7 @@ echo "Computing cumulative transforms"
 rm -rf $STACKINGDIR/accum/*.txt
 
 # Create an identity transform for the reference slice
-if (( ${LINEAR_RECON_ANTS} == 0 || ${LINEAR_RECON_ANTS} == 1 )); then
+if [[ ${STACKING_RECON_PROG} == "ANTS" ]]; then
 	# using ANTS
   ls $STACKINGDIR/tx/* | grep ${REFERENCE_SLICE} | head -n 1 | tail -n 1 | xargs cat | sed -r "s/^Parameters:.*/Parameters:\ 1 \ 0 \ 0 \ 1 \ 0 \ 0/g" \
     > "$STACKINGDIR/accum/linear_${REFERENCE_SLICE}_to_${REFERENCE_SLICE}_Affine.txt"
@@ -131,44 +131,18 @@ Accumulate_ANTS()
 
     echo "Combining $inttx and $targettx to form $movingtx"
 	
-	# Use the inverse transform if the forward transform does not exist
-	if [ ! -f "$STACKINGDIR/tx/${inttx}.txt" ]; then
-	
-		if (( ${LINEAR_RECON_ANTS} == 0 )); then
-    # linear transform version
-
-    $ANTSDIR/ComposeMultiTransform 2 $STACKINGDIR/accum/${movingtx}.txt \
-    -R  $STACKINGDIR/accum/linear_${REFERENCE_SLICE}_to_${REFERENCE_SLICE}_Affine.txt \
-    -i $STACKINGDIR/tx/${intinvtx}.txt $STACKINGDIR/accum/${targettx}.txt
-
-    	  #  echo "-i $STACKINGDIR/tx/${intinvtx}_Affine.txt" \
-        #	     `cat $STACKINGDIR/accum/${targettx}.txt` \
-		    #	 > $STACKINGDIR/accum/${movingtx}.txt
-
-		elif (( ${LINEAR_RECON_ANTS} == 1 )); then
-    # deformable transform version
-	        echo "-i $STACKINGDIR/tx/${intinvtx}_Affine.txt $STACKINGDIR/tx/${intinvtx}_InverseWarp.nii.gz" \
-    	         `cat $STACKINGDIR/accum/${targettx}.txt` \
-			     > $STACKINGDIR/accum/${movingtx}.txt
-		fi
-	
-	else
-		if (( ${LINEAR_RECON_ANTS} == 0 )); then
-			# linear transform version
-	  #      echo "$STACKINGDIR/tx/${inttx}_Affine.txt" \
-    #	          `cat $STACKINGDIR/accum/${targettx}.txt` \
-	  #  		  > $STACKINGDIR/accum/${movingtx}.txt
-	    		  
-    $ANTSDIR/ComposeMultiTransform 2 $STACKINGDIR/accum/${movingtx}.txt $STACKINGDIR/tx/${inttx}.txt $STACKINGDIR/accum/${targettx}.txt
-
-		elif (( ${LINEAR_RECON_ANTS} == 1 )); then
-			# deformable transform version
-	       echo "$STACKINGDIR/tx/${inttx}_Warp.txt $STACKINGDIR/tx/${inttx}_Affine.txt" \
-    	        `cat $STACKINGDIR/accum/${targettx}.txt` \
-	   		     > $STACKINGDIR/accum/${movingtx}.txt
-	   	fi
-	   	
-	fi
+    # Use the inverse transform if the forward transform does not exist
+    if [ ! -f "$STACKINGDIR/tx/${inttx}.txt" ]; then
+    
+      # linear transform version
+      $ANTSDIR/ComposeMultiTransform 2 $STACKINGDIR/accum/${movingtx}.txt \
+      -R  $STACKINGDIR/accum/linear_${REFERENCE_SLICE}_to_${REFERENCE_SLICE}_Affine.txt \
+      -i $STACKINGDIR/tx/${intinvtx}.txt $STACKINGDIR/accum/${targettx}.txt
+    
+    else
+      $ANTSDIR/ComposeMultiTransform 2 $STACKINGDIR/accum/${movingtx}.txt $STACKINGDIR/tx/${inttx}.txt $STACKINGDIR/accum/${targettx}.txt
+        
+    fi
   fi
 }
 
@@ -203,9 +177,9 @@ do
 	echo "  Accumulate $i"
 	
 	# Accumulate the linear transforms up to this point
-	if (( ${LINEAR_RECON_ANTS} == 0 || ${LINEAR_RECON_ANTS} == 1 )); then
+	if [[ ${STACKING_RECON_PROG} == "ANTS" ]]; then
 		Accumulate_ANTS $i 
-  elif (( ${LINEAR_RECON_ANTS} == 2 )); then
+  elif [[ ${STACKING_RECON_PROG} == "FSL" ]]; then
 		Accumulate_FSL $i
 	fi
 
@@ -227,11 +201,11 @@ do
 	mov=${slices[${i}]}
 	mask=${masks[${i}]}
 
-  qsub -N "reslice.$i" -o $OUTPUTDIR -e $ERRORDIR reslice.qsub.sh $mov $REFERENCE_SLICE $mask $ipad
+  exe "reslice.$i" 1 reslice.qsub.sh \
+  $mov $REFERENCE_SLICE $mask $ipad
 done
 
-# Wait for the jobs to finish
-qblock
+qblock "reslice"
 
 # Rebuild the volume
 echo "Building a 3D volume [$STACKINGDIR/volume/]"
@@ -265,4 +239,19 @@ $flip_option \
 -orient RAI -origin 0x0x0mm \
 -o $STACKINGDIR/volume/mask/reslice_histo_mask_oriented.nii.gz 
 
+# codes for ants deformable (not used here)
+		# elif [[ ${STACKING_RECON_PROG} == "ANTS" ]]; then
+    # deformable transform version
+	  #      echo "-i $STACKINGDIR/tx/${intinvtx}_Affine.txt $STACKINGDIR/tx/${intinvtx}_InverseWarp.nii.gz" \
+    #	         `cat $STACKINGDIR/accum/${targettx}.txt` \
+		#	     > $STACKINGDIR/accum/${movingtx}.txt
+# fi
 
+
+
+		# elif [[ ${STACKING_RECON_PROG} == "ANTS_DEFORMABLE" ]]; then
+			# deformable transform version
+	   #    echo "$STACKINGDIR/tx/${inttx}_Warp.txt $STACKINGDIR/tx/${inttx}_Affine.txt" \
+    #	        `cat $STACKINGDIR/accum/${targettx}.txt` \
+	  # 		     > $STACKINGDIR/accum/${movingtx}.txt
+	  # 	fi

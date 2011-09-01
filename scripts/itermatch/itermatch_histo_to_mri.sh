@@ -19,9 +19,11 @@ MRISLICE_NAME=${MRI_INNAME}_slice
 mkdir -p $HISTO_OUTDIR/reslice
 mkdir -p $HISTO_OUTDIR/reslice/mask
 mkdir -p $HISTO_OUTDIR/tx
+mkdir -p $HISTO_OUTDIR/tx_smooth
 mkdir -p $HISTO_OUTDIR/volume
 mkdir -p $HISTO_OUTDIR/volume/mask
 
+echo python smooth_h2m_transforms.py $H2M_SMOOTH_SIGMA $HISTO_OUTDIR/tx $HISTO_OUTDIR/tx_smooth
 # Submit a job for every image in the source directory
 nslices=`ls -1 ${HISTO_SLICE_INDIR}/*.nii.gz | wc -l`
 
@@ -29,24 +31,26 @@ echo "Registering histology slices to corresponding MR slices"
 for ((k=0; k < ${nslices}; k=k+1))
 do
 	kpad=`printf "%05d" $k`	
-  qsub -N "H2M${k}-reg" -o $OUTPUTDIR -e $ERRORDIR itermatch_histo_to_mri_reg.qsub.sh $kpad $MRISLICE_DIR $MRISLICE_NAME \
+  exe "H2M_reg_${k}" 1 itermatch_histo_to_mri_reg.qsub.sh \
+  $kpad $MRISLICE_DIR $MRISLICE_NAME \
   $HISTO_SLICE_INDIR $HISTO_SLICE_INNAME $HISTOMASK_SLICE_INDIR $HISTOMASK_SLICE_INNAME $HISTO_OUTDIR
 done
 
-qblock
+qblock "H2M_reg"
   
 # Smooth the rigid transform
 echo "smoothing the rigid transform"
-bash smooth_h2m_transforms.sh $HISTO_OUTDIR/tx
+python smooth_h2m_transforms.py $H2M_SMOOTH_SIGMA $HISTO_OUTDIR/tx $HISTO_OUTDIR/tx_smooth
 
 for ((k=0; k < ${nslices}; k=k+1))
 do
 	kpad=`printf "%05d" $k`	
-  qsub -N "H2M${k}-warp" -o $OUTPUTDIR -e $ERRORDIR itermatch_histo_to_mri_warp.qsub.sh $kpad $MRISLICE_DIR $MRISLICE_NAME \
+  exe "H2M_warp_${k}" 1 itermatch_histo_to_mri_warp.qsub.sh \
+  $kpad $MRISLICE_DIR $MRISLICE_NAME \
   $HISTO_SLICE_INDIR $HISTO_SLICE_INNAME $HISTOMASK_SLICE_INDIR $HISTOMASK_SLICE_INNAME $HISTO_OUTDIR
 done
 
-qblock
+qblock "H2M_warp" 
 
 # Compute a whole volume
 echo "Building a 3D volume [ $HISTO_OUTDIR/volume/histo_to_mri.nii.gz ]"

@@ -3,7 +3,7 @@
 # LINEAR registration script (1)
 # pairwise registration:
 #  register two 2D slices in the neighborhood range
-#  ($LINEAR_RECON_SEARCH_RANGE)
+#  ($STACKING_RECON_SEARCH_RANGE)
 # ==============================
 
 source ../common.sh
@@ -35,7 +35,6 @@ nfiles=`wc -l < $listfile | sed -e "s/ //g"`
 echo -e "Total number of images = $nfiles\n"
 
 cd $SCRIPTDIR/stacking
-
 # perform affine registration
 for ((i=1; i < ${nfiles}; i=i+1))
 do
@@ -43,7 +42,7 @@ do
   moving=`head -n $i $listfile | tail -n 1`
   
   # Set the upper bound for the inner loop
-  let k=i+$LINEAR_RECON_SEARCH_RANGE;
+  let k=i+$STACKING_RECON_SEARCH_RANGE;
 
   if (( $nfiles < $k ))
   then 
@@ -56,12 +55,9 @@ do
      fixed=`head -n $j $listfile | tail -n 1`
 		 mask=`head -n $j $maskfile | tail -n 1`
 		
-    echo "linear.$moving-to-$fixed"
-    qsub -N "linear.$moving-to-$fixed" -o $OUTPUTDIR -e $ERRORDIR linear.qsub.sh $fixed $moving \
-		$mask # -pe serial 3
-
+    exe "linear.$moving-to-$fixed" 1 linear.qsub.sh \
+      $fixed $moving $mask 
   done
 done
 
-qblock
-
+qblock "linear"

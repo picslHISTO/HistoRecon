@@ -23,7 +23,7 @@ mkdir -p $MRI_OUTDIR/slices/label
 
 echo "Align MRI to histology volume..."
 
-if (( ${M2H_USE_ANTS} == 1 )); then
+if [[ ${M2H_PROG} == "ANTS_LINEAR" ]]; then
   if (( ${iter} == 1 )); then
    $ANTSDIR/ANTS 3 -m MI["$HISTO_INDIR/${HISTO_INNAME}.nii.gz","$MRI_INDIR/${MRI_INNAME}.nii.gz",1,32] \
                     -o "$MRI_OUTDIR/tx/${MRI_OUTNAME}_" \
@@ -54,7 +54,7 @@ if (( ${M2H_USE_ANTS} == 1 )); then
                                      "$MRI_OUTDIR/tx/${MRI_OUTNAME}_Affine.txt" \
                                   -R "$HISTO_INDIR/${HISTO_INNAME}.nii.gz" --use-NN
 
-elif (( ${M2H_USE_ANTS} == 0 )); then
+elif [[ ${M2H_PROG} == "FSL_LINEAR" ]]; then
   if ((${iter} == 1)); then
     $FSLDIR/flirt -ref  "$HISTO_INDIR/${HISTO_INNAME}.nii.gz" \
                   -in   "$MRI_INDIR/${MRI_INNAME}.nii.gz" \

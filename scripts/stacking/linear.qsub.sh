@@ -17,52 +17,35 @@ echo "3-parameter registration of ${moving} to ${fixed}..."
 
 echo $fixed $moving $mov2fix
 
-
-# question??? do we need this?
-# This command also warps the input image
-$ANTSDIR/ANTS 2 \
-       -m MI["$GRAYDIR/${fixed}.nii.gz","$GRAYDIR/${moving}.nii.gz",1,32] \
-       -o "$STACKINGDIR/tx/${mov2fix}_" \
-       -x $MASKDIR/${mask}.nii.gz \
-       -i 0 \
-       --rigid-affine true \
-       --affine-metric-type MI \
-       --MI-option 32x10000 \
-       --number-of-affine-iterations 10000x10000x10000x10000 \
-       > "$OUTPUTDIR/linear_${mov2fix}.txt"
-
 # this may used to directly calculate the measure 
 # cat $OUTPUTDIR/linear_${mov2fix}.txt | sed -e "s/final measure value (MMI): rval = //g" \
 #       > $STACKINGDIR/metric/.txt
-echo ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-if (( ${LINEAR_RECON_ANTS} == 0 )); then
+if [[ ${STACKING_RECON_PROG} == "ANTS" ]]; then
   # using ANTS linear 
-  if (( ${LINEAR_RECON_TRANS} == 6 )); then
+  if [[ ${STACKING_RECON_DOF} == 6 ]]; then
     # use 2D affine transformations
     $ANTSDIR/ANTS 2 \
-        -m MI["$GRAYDIR/${fixed}.nii.gz","$GRAYDIR/${moving}.nii.gz",1,32] \
-        -o "$STACKINGDIR/tx/${mov2fix}_" \
-        -i 0 \
-        --affine-metric-type MI \
-        --MI-option 32x10000 \
-        --number-of-affine-iterations 10000x10000x10000 \
-        > "$OUTPUTDIR/linear_${mov2fix}.txt"
+                 -m MI["$GRAYDIR/${fixed}.nii.gz","$GRAYDIR/${moving}.nii.gz",1,32] \
+                 -o "$STACKINGDIR/tx/${mov2fix}_" \
+                 -x $MASKDIR/${mask}.nii.gz \
+                 -i 0 \
+                 --affine-metric-type MI \
+                 --MI-option 32x10000 \
+                 --number-of-affine-iterations 10000x10000x10000 \
+                 > "$OUTPUTDIR/linear_${mov2fix}.txt"
 
-        #### -x "$MASKDIR/${mask}.nii.gz" \
-        #### --rigid-affine true \
-        
-  elif (( ${LINEAR_RECON_TRANS} == 3 )); then
-    # use 2D rigid transformations
+  elif (( ${STACKING_RECON_DOF} == 3 )); then
+    # Degrees of Freedom = 3, use 2D rigid transformations
     $ANTSDIR/ANTS 2 \
-        -m MI["$GRAYDIR/${fixed}.nii.gz","$GRAYDIR/${moving}.nii.gz",1,32] \
-        -o "$STACKINGDIR/tx/${mov2fix}_" \
-        -i 0 \
-        --affine-metric-type MI \
-        --MI-option 32x10000 \
-        --number-of-affine-iterations 10000x10000x10000 \
-        --rigid-affine true \
-        > "$OUTPUTDIR/linear_${mov2fix}.txt"
+                 -m MI["$GRAYDIR/${fixed}.nii.gz","$GRAYDIR/${moving}.nii.gz",1,32] \
+                 -o "$STACKINGDIR/tx/${mov2fix}_" \
+                 -i 0 \
+                 --affine-metric-type MI \
+                 --MI-option 32x10000 \
+                 --number-of-affine-iterations 10000x10000x10000 \
+                 --rigid-affine true \
+                 > "$OUTPUTDIR/linear_${mov2fix}.txt"
   fi
 
   $ANTSDIR/WarpImageMultiTransform 2 "$GRAYDIR/${moving}.nii.gz" \
@@ -70,28 +53,8 @@ if (( ${LINEAR_RECON_ANTS} == 0 )); then
                                      "$STACKINGDIR/tx/${mov2fix}_Affine.txt" \
                                   -R "$GRAYDIR/${fixed}.nii.gz"
                   
-elif (( ${LINEAR_RECON_ANTS} == 1 )); then
-  # deformable ANTS
-  $ANTSDIR/ANTS 2 \
-               -m MI["$GRAYDIR/${fixed}.nii.gz","$GRAYDIR/${moving}.nii.gz",1,32] \
-               -t SyN[0.25] \
-               -r Gauss[1] \
-               -o "$STACKINGDIR/tx/${mov2fix}_" \
-               -x "$MASKDIR/${mask}.nii.gz" \
-               -i 100x100 \
-               --affine-metric-type MI \
-               --MI-option 32x10000 \
-               --use-Histogram-Matching \
-               --number-of-affine-iterations 10000x10000x10000 \
-               > "$OUTPUTDIR/linear_${mov2fix}.txt"
 
-  $ANTSDIR/WarpImageMultiTransform 2 "$GRAYDIR/${moving}.nii.gz" \
-                                     "$STACKINGDIR/warp/${mov2fix}.nii.gz" \
-                                     "$STACKINGDIR/tx/${mov2fix}_Warp.nii.gz" \
-                                     "$STACKINGDIR/tx/${mov2fix}_Affine.txt" \
-                                  -R "$GRAYDIR/${fixed}.nii.gz"
-
-elif (( ${LINEAR_RECON_ANTS} == 2 )); then
+elif [[ ${STACKING_RECON_PROG} == "FSL" ]]; then
   # FSL linear
   # This command also warps the input image
   $FSLDIR/flirt -ref "$GRAYDIR/${fixed}.nii.gz" \
@@ -101,12 +64,35 @@ elif (( ${LINEAR_RECON_ANTS} == 2 )); then
                 -out "$STACKINGDIR/warp/${mov2fix}.nii.gz" \
                 -omat "$STACKINGDIR/tx/${mov2fix}.mat" \
                 -cost normmi \
-                -2D -schedule "$SCHDIR/sch2D_${LINEAR_RECON_TRANS}dof" \
+                -2D -schedule "$SCHDIR/sch2D_${STACKING_RECON_DOF}dof" \
                 -verbose 2 # > "$OUTPUTDIR/linear_${mov2fix}.txt"
  
   # Compute the inverse transform
   $FSLDIR/convert_xfm -inverse "$STACKINGDIR/tx/${mov2fix}.mat" \
                       -omat    "$STACKINGDIR/tx/${fix2mov}.mat"                     
+
+
+# For the time being, we will not use the ANTS deformable to do the stacking
+# elif [[ ${STACKING_RECON_PROG} == "ANTS_DEFORMABLE" ]]; then
+#   # deformable ANTS
+#   $ANTSDIR/ANTS 2 \
+#                -m MI["$GRAYDIR/${fixed}.nii.gz","$GRAYDIR/${moving}.nii.gz",1,32] \
+#                -t SyN[0.25] \
+#                -r Gauss[1] \
+#                -o "$STACKINGDIR/tx/${mov2fix}_" \
+#                -x "$MASKDIR/${mask}.nii.gz" \
+#                -i 100x100 \
+#                --affine-metric-type MI \
+#                --MI-option 32x10000 \
+#                --use-Histogram-Matching \
+#                --number-of-affine-iterations 10000x10000x10000 \
+#                > "$OUTPUTDIR/linear_${mov2fix}.txt"
+# 
+#   $ANTSDIR/WarpImageMultiTransform 2 "$GRAYDIR/${moving}.nii.gz" \
+#                                      "$STACKINGDIR/warp/${mov2fix}.nii.gz" \
+#                                      "$STACKINGDIR/tx/${mov2fix}_Warp.nii.gz" \
+#                                      "$STACKINGDIR/tx/${mov2fix}_Affine.txt" \
+#                                   -R "$GRAYDIR/${fixed}.nii.gz"
 fi
 
 

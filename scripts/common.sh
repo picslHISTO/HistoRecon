@@ -3,124 +3,46 @@
 
 # Define some functions to use in scripts
 # 1. A function that waits until all submitted jobs have finished
-function qblock() 
+function qblock 
 {
-  echo "Waiting for all jobs to finish"
-  while [ -n "`qstat -u $USER`" ]
-  do
-    sleep 5
-  done
-  echo "All jobs have finished executing!"
+  # get the qsub job names
+  qname=$1
+  if [[ $DO_QSUB == "Y" ]]; then
+    echo "Waiting for all jobs to finish..."
+    qsub -N "wait-$qname" -e $ERRORDIR -o $OUTPUTDIR -hold_jid "${qname}*" -sync y -b y echo ""
+    echo "All jobs have been finished!"
+  else
+    echo "$1" has been finished
+  fi
 }
 
-# ------------------------------------------ PARAMTERS
-# histo raw data input directory 
-HISTO_RAWDIR="/home/liuyang/data/Histo/Rob/1034"
-HISTOMASK_RAWDIR="/home/liuyang/data/Histo/Rob/1034-mask"
+# A function execute the script with qsub or bash
+function exe
+{
+  qname=$1
+  pe=$2
+  shift 2
+  # get whether to do the qsub or not
+  if [[ $DO_QSUB == "Y" ]]; then 
+    qsub -N ${qname} -pe serial ${pe} -o $OUTPUTDIR -e $ERRORDIR $*
+  else
+    bash $*
+  fi
+}
 
-# histo resize ratio
-HISTO_RESIZE_RATIO=5%
-
-# current dataset
-sample="F"
-
-# obsolete
-# zoom factor of low and high resolution histology
-# LOWRESZOOM=0.01
-# HIRESZOOM=0.05
-
-# Histology Orientation information
-# NOTE: if the you don't want to flip, then HISTO_FLIP=""
-HISTO_FLIP="yz"
-HISTO_ORIENT="xzy"
-
-
-# obsolete
-# Voxel dimensions of the high resolution histology images
-# HIHSPACEX=0.000504
-# HIHSPACEY=0.000504
-# HIHSPACEZ=0.165
-
-# Voxel dimensions of the low resolution histology images
-HSPACEX=0.0108
-HSPACEY=0.0108
-HSPACEZ=0.165
-
-# percent of pixels to pad histology images on all sides
-# (to prevent going out of field of view during registration)
-HISTO_PAD_PERCENT=30
-# NOTE: padding the histology images introduces an edge, so we should only do it if they are masked
-# before registration
-
-# obsolete: replaced by Atrops
-# threshold used for creating histology of masks
-# MASK_HISTO_THRESH=0.56
-# note should be variable with slice
-
-# number of neighbouring slices that each histology slice is registered to during reconstruction step
-LINEAR_RECON_SEARCH_RANGE=5
-
-# flag for using ANTS or FSL for inter-slice registration during histology reconstruction
-# (0 = ANTS linear, 1 = ANTS deformable, 2 = FSL linear)
-LINEAR_RECON_ANTS=0
-
-# optional paramter if calling FSL
-# inter-slice registration transformation used during histology reconstruction (no. DOF=3,5,6)
-# 3 : translation + rotation (ANTS / FSL, LINEAR_RECON_ANTS= 0 / 2)
-# 5 : translation + scaling + rotation (only work with FSL, LINEAR_RECON_ANTS=2)
-# 6 : translation + scaling + shearing + rotation  (ANTS / FSL, LINEAR_RECON_ANTS= 0 / 2)
-LINEAR_RECON_TRANS=3
-
-# working in progress:
-# Number of slices to pad the histology volume at the front and back
-# NUMPAD=3
-
-# number of iterations for histology-MRI matching
-H2M_NITER=2
-
-# flag for using ANTS or FSL for 3D MRI to histology registration
-# (0 = FSL affine, 1 = ANTS affine, 2 = ANTS deform)
-M2H_USE_ANTS=1
-
-# flag for using deformable or affine registration of histology to mri slices
-# 0: only use affine
-# 1: use affine, then use deformable
-H2M_DEFORMABLE=0
-
-# obsolete
-# number of deformable histology iterations to run
-# DEFORM_NITER=4
-
-# ------------------------------------------ PARAMTERS
-
-BASEDIR=/home/liuyang/mouse12
-ANTSDIR=/home/songgang/project/ANTS/gccrel-st-noFFTW
-C3DDIR=/home/liuyang/bin/bin
-FSLDIR=/home/avants/bin/fsl/fsl-4.1.0_32bit/bin
-SCHDIR=/home/avants/bin/fsl/fsl-4.1.0_32bit/etc/flirtsch
-MAGICKDIR=/home/liuyang/bin/ImageMagick/bin
-
-SCRIPTDIR=$BASEDIR/scripts
-PROGDIR=$BASEDIR/progs/bin
-LD_LIBRARY_PATH=$BASEDIROLD/progs/itkbin:$LD_LIBRARY_PATH
-
-PATH=$LD_LIBRARY_PATH:$AIRDIR:$ANTSDIR:$C3DDIR:$FSLDIR:$PROGDIR:$SCRIPTDIR:$PATH
-
+SCHDIR=$FSLDIR/../etc/flirtsch
 FSLOUTPUTTYPE=NIFTI_GZ
 export FSLOUTPUTTYPE
-
 
 # Set up the directories used in all scripts
 # Depending on whether we want to test or not, select the right directory tree
 
+# Script directory
+SCRIPTDIR=$BASEDIR/scripts
+
 # Data directory
 DATADIR=$BASEDIR/data
-
-# MRI template directory
-MRI_INDIR="$DATADIR/input/mri"
-MRI_INNAME="canon_T1_r_halfsize_origin000_masked"
-MRILABEL_INDIR="$DATADIR/input/mri"
-MRILABEL_INNAME="waxholm_label_halfsize_origin000"
+mkdir -p $DATADIR
 
 # Directory for temporary results
 TMPDIR="$BASEDIR/tmp/${PPID}"
@@ -132,12 +54,8 @@ ERRORDIR="$BASEDIR/error"
 mkdir -p $OUTPUTDIR
 mkdir -p $ERRORDIR
 
-# Directory where the input images are located
-# RAWDIR=$DATADIR/input/histo/raw
-# mkdir -p $RAWDIR
-
 # Directory where some parameter files are stored
-PARMDIR=$BASEDIR/data/parameters
+PARMDIR=$DATADIR/parameters
 mkdir -p $PARMDIR
 
 # Directory where the non-padded nifti images are placed 
@@ -171,7 +89,4 @@ mkdir -p $DEFORMDIR
 # Directory for getting the warp back the label 
 LABELDIR=$DATADIR/work/label_to_orig
 mkdir -p $LABELDIR
-
-export LD_LIBRARY_PATH PATH RAWDIR MASKDIR GRAYDIR STACKINGDIR MODEL
-export PARMDIR TMPDIR OUTPUTDIR ERRORDIR
 

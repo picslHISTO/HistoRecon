@@ -13,9 +13,9 @@ ipad=$4
 tx="linear_${mov}_to_${ref}"
 
 # Reslice the image
-if (( ${LINEAR_RECON_ANTS} == 0 || ${LINEAR_RECON_ANTS} == 1 )); then
-	# using ANTS (valid for both affine and deformable registration, since accumulation file contains
-	# the affine and deformable transformations
+if [[ ${STACKING_RECON_PROG} == "ANTS" ]]; then
+	# using ANTS (valid for both affine and deformable registration,
+  # since accumulation file contains the affine and deformable transformations
   $ANTSDIR/WarpImageMultiTransform 2 "$GRAYDIR/${mov}.nii.gz" \
                                      "$STACKINGDIR/reslice/reslice_histo_slice${ipad}.nii.gz" \
                                       $STACKINGDIR/accum/${tx}_Affine.txt \
@@ -26,7 +26,7 @@ if (( ${LINEAR_RECON_ANTS} == 0 || ${LINEAR_RECON_ANTS} == 1 )); then
                                       $STACKINGDIR/accum/${tx}_Affine.txt \
                                   -R "$GRAYDIR/${ref}.nii.gz" --use-NN
 
-elif (( ${LINEAR_RECON_ANTS} == 2 )); then
+elif [[ ${STACKING_RECON_PROG} == "FSL" ]]; then
 	# using FSL
 	$FSLDIR/flirt -in   "$GRAYDIR/${mov}.nii.gz" \
     	          -ref  "$GRAYDIR/${ref}.nii.gz" \

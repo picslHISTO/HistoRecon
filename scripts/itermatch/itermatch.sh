@@ -2,7 +2,7 @@
 # Set up the script environment
 source ../common.sh
 
-numiter=${H2M_NITER}
+numiter=${H2M_NUM_ITER}
 echo "Performing MRI-histology matching iteratively, numiter = $numiter"
 
 for ((i=1; i <= ${numiter}; i=i+1))
@@ -33,10 +33,11 @@ do
     HISTO_OUTNAME="histo_to_mri"
     mkdir -p $HISTO_OUTDIR
 
-    qsub -pe serial 4 -N "M2H_iter${i}" -o $OUTPUTDIR -e $ERRORDIR itermatch_mri_to_histo.qsub.sh  $HISTO_INDIR $HISTO_INNAME $MRI_INDIR $MRI_INNAME \
+    exe "M2H_iter${i}" 4 itermatch_mri_to_histo.qsub.sh \
+    $HISTO_INDIR $HISTO_INNAME $MRI_INDIR $MRI_INNAME \
     $MRILABEL_INDIR $MRILABEL_INNAME $MRI_OUTDIR $MRI_OUTNAME $i
 
-    qblock
+    qblock "M2H_iter${i}"
     
     bash itermatch_histo_to_mri.sh  $MRI_OUTDIR $MRI_OUTNAME $HISTO_SLICE_INDIR $HISTO_SLICE_INNAME \
     $HISTOMASK_SLICE_INDIR $HISTOMASK_SLICE_INNAME $HISTO_OUTDIR 
@@ -73,10 +74,11 @@ do
 		HISTO_OUTDIR="$DATADIR/work/histo_to_mri/iter${i}"
     mkdir -p $HISTO_OUTDIR
      	
-    qsub -pe serial 4 -N "M2H_iter${i}" -o $OUTPUTDIR -e $ERRORDIR itermatch_mri_to_histo.qsub.sh  $HISTO_INDIR $HISTO_INNAME $MRI_INDIR $MRI_INNAME \
+    exe "M2H_iter${i}" 4 itermatch_mri_to_histo.qsub.sh \
+    $HISTO_INDIR $HISTO_INNAME $MRI_INDIR $MRI_INNAME \
     $MRILABEL_INDIR $MRILABEL_INNAME $MRI_OUTDIR $MRI_OUTNAME $i $MRI_INIT_TX
 
-    qblock
+    qblock "M2H_iter${i}"
     
     bash itermatch_histo_to_mri.sh  $MRI_OUTDIR $MRI_OUTNAME $HISTO_SLICE_INDIR $HISTO_SLICE_INNAME \
     $HISTOMASK_SLICE_INDIR $HISTOMASK_SLICE_INNAME $HISTO_OUTDIR $HISTO_OUTNAME
