@@ -1,0 +1,72 @@
+# Set up the script environment
+#!/bin/bash
+
+# Define some functions to use in scripts
+# 1. A function that waits until all submitted jobs have finished
+function qblock() 
+{
+  echo "Waiting for all jobs to finish"
+  while [ -n "`qstat -u $USER`" ]
+  do
+    sleep 5
+  done
+  echo "All jobs have finished executing!"
+}
+
+SCHDIR=$FSLDIR/../etc/flirtsch
+FSLOUTPUTTYPE=NIFTI_GZ
+export FSLOUTPUTTYPE
+
+# Set up the directories used in all scripts
+# Depending on whether we want to test or not, select the right directory tree
+
+# Data directory
+DATADIR=$BASEDIR/data/
+mkdir -p $DATADIR
+
+# Directory for temporary results
+TMPDIR="$BASEDIR/tmp/${PPID}"
+mkdir -p $TMPDIR
+
+# Directory for qsub output
+OUTPUTDIR="$BASEDIR/output"
+ERRORDIR="$BASEDIR/error"
+mkdir -p $OUTPUTDIR
+mkdir -p $ERRORDIR
+
+# Directory where some parameter files are stored
+PARMDIR=$DATADIR/parameters
+mkdir -p $PARMDIR
+
+# Directory where the non-padded nifti images are placed 
+NIFTIDIR=$DATADIR/input/histo/nii
+mkdir -p $NIFTIDIR
+
+# Directory where the grayscale images are placed before registration
+GRAYDIR=$DATADIR/input/histo/nii_padded
+mkdir -p $GRAYDIR
+
+# Directory where the mask images are placed
+MASKDIR=$DATADIR/input/histo/nii_padded/mask
+mkdir -p $MASKDIR
+
+# Directory where the stacking of the histology data is placed
+STACKINGDIR=$DATADIR/work/stacking
+mkdir -p $STACKINGDIR
+
+# Directory where the mri volume warped to histology is produced 
+M2HDIR=$DATADIR/work/mri_to_histo
+mkdir -p $M2HDIR
+
+# Directory where the histology slices warped to mri are produced
+H2MDIR=$DATADIR/work/histo_to_mri
+mkdir -p $H2MDIR
+
+# Directory where the defomably warped mri slices are produced
+DEFORMDIR=$DATADIR/work/deform
+mkdir -p $DEFORMDIR
+
+# Directory for getting the warp back the label 
+LABELDIR=$DATADIR/work/label_to_orig
+mkdir -p $LABELDIR
+
