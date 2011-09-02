@@ -102,7 +102,7 @@ def main(argv=sys.argv):
   parser.add_argument('--steps', 
       nargs='+',
       help='Choose the steps in the pipeline you want to run,\n e.g. --steps 1 2 3',
-      default = 'all')
+      default = '12345')
   # qsub option
   parser.add_argument('--do-qsub',
       help='whether to use qsub in the whole pipeline (Y/N)',
@@ -135,6 +135,10 @@ def main(argv=sys.argv):
 
   histo_spacing = args.histo_spacing.split('x')
   f_out.writelines('# histology spacing info \n')
+  # convert the ratio into decimals to get the spacing for the resized image
+  ratio = float(args.histo_resize_ratio.rstrip('%')) / 100;
+  histo_spacing[0] = str(float(histo_spacing[0]) / ratio)
+  histo_spacing[1] = str(float(histo_spacing[1]) / ratio)
   f_out.writelines('HSPACEX=' + histo_spacing[0] + '\n')
   f_out.writelines('HSPACEY=' + histo_spacing[1] + '\n')
   f_out.writelines('HSPACEZ=' + histo_spacing[2] + '\n')
