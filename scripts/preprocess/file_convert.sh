@@ -20,6 +20,7 @@ mkdir -p $PNGDIR
 # make sure the directory is clean
 rm -rf $PNGDIR/*.*
 rm -rf $NIFTIDIR/*.*
+rm -rf $NIFTIDIR/mask/*.*
 
 
 # convert is required on the machine

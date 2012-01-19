@@ -12,8 +12,8 @@
 # ==============================
 
 source ../common.sh
-spacingx=$HSPACEX
-spacingy=$HSPACEY
+spacingx=$RESPACEX
+spacingy=$RESPACEY
 spacingz=$HSPACEZ
 orient=${HISTO_ORIENT}
 flip=${HISTO_FLIP}

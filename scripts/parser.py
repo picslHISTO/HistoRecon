@@ -20,7 +20,7 @@ def main(argv=sys.argv):
       required = True)
   parser.add_argument('--histo-mask-in', 
       help='histology mask input raw directory',
-      required = True)
+      default = "")
 
   # histology input spacing, orientation(permute axis and flip) and other info
   parser.add_argument('--histo-spacing', 
@@ -28,7 +28,7 @@ def main(argv=sys.argv):
       required = True)
   parser.add_argument('--histo-flip', 
       help='axis of histology 3D image to flip',
-      default = 'yz')
+      default = 'xyz')
   parser.add_argument('--histo-permute-axis', 
       help='reorient axis of histology 3D image',
       default = 'xzy')
@@ -59,6 +59,9 @@ def main(argv=sys.argv):
       required = True)
   parser.add_argument('--magick-dir', 
       help='ImageMagick binary directory',
+      required = True)
+  parser.add_argument('--matlab-dir', 
+      help='MATLAB binary directory',
       required = True)
   parser.add_argument('--prog-dir', 
       help='program binary directory',
@@ -102,7 +105,7 @@ def main(argv=sys.argv):
   parser.add_argument('--steps', 
       nargs='+',
       help='Choose the steps in the pipeline you want to run,\n e.g. --steps 1 2 3',
-      default = '12345')
+      default = 'all')
   # qsub option
   parser.add_argument('--do-qsub',
       help='whether to use qsub in the whole pipeline (Y/N)',
@@ -123,6 +126,8 @@ def main(argv=sys.argv):
 
   histo_rawdir=os.path.abspath(args.histo_in)
   histomask_rawdir=os.path.abspath(args.histo_mask_in)
+    
+
   mri_waxholm_file=os.path.abspath(args.mri_in)
   mrilabel_waxholm_file=os.path.abspath(args.mri_label_in)
 
@@ -131,14 +136,11 @@ def main(argv=sys.argv):
 
   f_out.writelines('# histo raw data input directory \n')
   f_out.writelines('HISTO_RAWDIR=' + histo_rawdir + '\n')
-  f_out.writelines('HISTOMASK_RAWDIR=' + histomask_rawdir + '\n')
+  if (args.histo_mask_in != ""):
+    f_out.writelines('HISTOMASK_RAWDIR=' + histomask_rawdir + '\n')
 
   histo_spacing = args.histo_spacing.split('x')
-  f_out.writelines('# histology spacing info \n')
-  # convert the ratio into decimals to get the spacing for the resized image
-  ratio = float(args.histo_resize_ratio.rstrip('%')) / 100;
-  histo_spacing[0] = str(float(histo_spacing[0]) / ratio)
-  histo_spacing[1] = str(float(histo_spacing[1]) / ratio)
+  f_out.writelines('# input histology spacing info \n')
   f_out.writelines('HSPACEX=' + histo_spacing[0] + '\n')
   f_out.writelines('HSPACEY=' + histo_spacing[1] + '\n')
   f_out.writelines('HSPACEZ=' + histo_spacing[2] + '\n')
@@ -158,11 +160,24 @@ def main(argv=sys.argv):
   f_out.writelines('C3DDIR=' + args.c3d_dir + '\n')
   f_out.writelines('FSLDIR=' + args.fsl_dir + '\n')
   f_out.writelines('MAGICKDIR=' + args.magick_dir + '\n')
+  f_out.writelines('MATLABDIR=' + args.matlab_dir + '\n')
   f_out.writelines('PROGDIR=' + args.prog_dir + '\n')
 
   f_out.writelines('# histology resize and pad info \n')
   f_out.writelines('HISTO_RESIZE_RATIO=' + args.histo_resize_ratio + '\n')
   f_out.writelines('HISTO_PAD_PERCENT=' + args.histo_pad_percent + '\n')
+
+  # change the histology spacing info by the ratio given
+  # convert the percentage into the real float 
+  histo_resize_ratio = float(args.histo_resize_ratio.strip('%')) * 0.01
+  histo_spacing[0] = str( float(histo_spacing[0]) / histo_resize_ratio )
+  histo_spacing[1] = str( float(histo_spacing[1]) / histo_resize_ratio )
+
+  f_out.writelines('# resized histology spacing info \n')
+  f_out.writelines('RESPACEX=' + histo_spacing[0] + '\n')
+  f_out.writelines('RESPACEY=' + histo_spacing[1] + '\n')
+
+
 
   f_out.writelines('# histology stacking recon parameters \n')
   f_out.writelines('STACKING_RECON_SEARCH_RANGE=' + args.histo_stacking_range + '\n')

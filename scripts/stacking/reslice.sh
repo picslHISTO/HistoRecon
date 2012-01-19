@@ -219,12 +219,16 @@ else
 	flip_option=''
 fi
 
+spacingx=$RESPACEX
+spacingy=$RESPACEY
+spacingz=$HSPACEZ
+
 # question: change to Nick's program ConvertImageSeriess
 $PROGDIR/imageSeriesToVolume -o "$STACKINGDIR/volume/reslice_histo.nii.gz" \
-                             -sx $HSPACEX -sy $HSPACEY -sz $HSPACEZ \
+                             -sx $spacingx -sy $spacingy -sz $spacingz \
                              -i `ls -1 $STACKINGDIR/reslice/*.nii.gz`
 $PROGDIR/imageSeriesToVolume -o "$STACKINGDIR/volume/mask/reslice_histo_mask.nii.gz" \
-                             -sx $HSPACEX -sy $HSPACEY -sz $HSPACEZ \
+                             -sx $spacingx -sy $spacingy -sz $spacingz \
                              -i `ls -1 $STACKINGDIR/reslice/mask/*.nii.gz`
 
 $C3DDIR/c3d $STACKINGDIR/volume/reslice_histo.nii.gz \

@@ -68,8 +68,8 @@ $PROGDIR/imageSeriesToVolume -o "$HISTO_OUTDIR/volume/mask/histo_to_mri_mask.nii
 echo "Building a 3D volume" 
 
 
-spacingx=$HSPACEX
-spacingy=$HSPACEY
+spacingx=$RESPACEX
+spacingy=$RESPACEY
 spacingz=$HSPACEZ
 orient=${HISTO_ORIENT}
 flip=${HISTO_FLIP}
@@ -101,4 +101,3 @@ $flip_option \
 -orient RAI -origin 0x0x0mm \
 -o "$HISTO_OUTDIR/volume/mask/histo_to_mri_mask_oriented.nii.gz" \
 
-                          
