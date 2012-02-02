@@ -71,15 +71,6 @@ echo "Building a 3D volume"
 spacingx=$RESPACEX
 spacingy=$RESPACEY
 spacingz=$HSPACEZ
-orient=${HISTO_ORIENT}
-flip=${HISTO_FLIP}
-
-if [ -n "$flip" ] 
-then
-	flip_option="-flip $flip"
-else
-	flip_option=''
-fi
 
 $PROGDIR/imageSeriesToVolume -o "$HISTO_OUTDIR/volume/histo_to_mri.nii.gz" \
                              -sx $spacingx -sy $spacingy -sz $spacingz \
@@ -89,15 +80,19 @@ $PROGDIR/imageSeriesToVolume -o "$HISTO_OUTDIR/volume/mask/histo_to_mri_mask.nii
                              -sx $spacingx -sy $spacingy -sz $spacingz \
                              -i `ls -1 $HISTO_OUTDIR/reslice/mask/*.nii.gz`
 
-$C3DDIR/c3d $HISTO_OUTDIR/volume/histo_to_mri.nii.gz \
-$flip_option \
--pa $orient \
+$ANTSDIR/PermuteFlipImageOrientationAxes $HISTO_OUTDIR/volume/histo_to_mri.nii.gz \
+                                         $HISTO_OUTDIR/volume/histo_to_mri_oriented.nii.gz \
+                                         $HISTO_REV_ORIENT
+
+$ANTSDIR/PermuteFlipImageOrientationAxes $HISTO_OUTDIR/volume/histo_to_mri_mask.nii.gz \
+                                         $HISTO_OUTDIR/volume/histo_to_mri_mask_oriented.nii.gz \
+                                         $HISTO_REV_ORIENT
+
+$C3DDIR/c3d $HISTO_OUTDIR/volume/histo_to_mri_oriented.nii.gz \
 -orient RAI -origin 0x0x0mm \
 -o "$HISTO_OUTDIR/volume/histo_to_mri_oriented.nii.gz" \
 
-$C3DDIR/c3d $HISTO_OUTDIR/volume/mask/histo_to_mri_mask.nii.gz \
-$flip_option \
--pa $orient \
+$C3DDIR/c3d $HISTO_OUTDIR/volume/mask/histo_to_mri_mask_oriented.nii.gz \
 -orient RAI -origin 0x0x0mm \
 -o "$HISTO_OUTDIR/volume/mask/histo_to_mri_mask_oriented.nii.gz" \
 

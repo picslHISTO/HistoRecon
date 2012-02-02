@@ -15,15 +15,6 @@ source ../common.sh
 spacingx=$RESPACEX
 spacingy=$RESPACEY
 spacingz=$HSPACEZ
-orient=${HISTO_ORIENT}
-flip=${HISTO_FLIP}
-
-if [ -n "$flip" ] 
-then
-	flip_option="-flip $flip"
-else
-	flip_option=''
-fi 
 
 INPUTPATH=$GRAYDIR
 OUTPUTPATH=$DATADIR/input/histo/tmp
@@ -53,10 +44,12 @@ $PROGDIR/imageSeriesToVolume -o "$VOLUMEPATH/volume.nii.gz" \
                              -sx $spacingx -sy $spacingy -sz $spacingz \
                              -i `ls -1 $OUTPUTPATH/*.nii.gz | sort`
 
-# flip option should go before the permute axis
+$ANTSDIR/PermuteFlipImageOrientationAxes 3 \
+        $VOLUMEPATH/volume.nii.gz \
+        $VOLUMEPATH/volume.nii.gz \
+        $HISTO_REV_ORIENT 
+
 $C3DDIR/c3d $VOLUMEPATH/volume.nii.gz \
-$flip_option \
--pa $orient \
 -orient RAI -origin 0x0x0mm \
 -o $VOLUMEPATH/volume.nii.gz
 
@@ -65,32 +58,6 @@ rm $PARMDIR/spacing_reoriented.txt
 $C3DDIR/c3d $VOLUMEPATH/volume.nii.gz -info-full | grep "pixdim\[[1-3]\]"  | \
 sed -r "s/pixdim\[[1-3]\] = //g" | sed "s/ //g" \
 >> $PARMDIR/spacing_reoriented.txt
-
-# For the inverse transform
-orient_inverse=''
-if [[ ${orient:0:1} == 'x' ]]; then
-  orient_inverse=${orient_inverse}x
-elif [[ ${orient:1:1} == 'x' ]]; then
-  orient_inverse=${orient_inverse}y
-elif [[ ${orient:2:1} == 'x' ]]; then
-  orient_inverse=${orient_inverse}z
-fi
-
-if [[ ${orient:0:1} == 'y' ]]; then
-  orient_inverse=${orient_inverse}x
-elif [[ ${orient:1:1} == 'y' ]]; then
-  orient_inverse=${orient_inverse}y
-elif [[ ${orient:2:1} == 'y' ]]; then
-  orient_inverse=${orient_inverse}z
-fi
-
-if [[ ${orient:0:1} == 'z' ]]; then
-  orient_inverse=${orient_inverse}x
-elif [[ ${orient:1:1} == 'z' ]]; then
-  orient_inverse=${orient_inverse}y
-elif [[ ${orient:2:1} == 'z' ]]; then
-  orient_inverse=${orient_inverse}z
-fi
 
 echo "reorient the mri images"
 
@@ -110,28 +77,35 @@ $C3DDIR/c3d ${MRILABEL_WAXHOLM_FILE} \
             -thresh 1 inf 1 0 \
             -o $MRIMASK_OUTDIR/${MRIMASK_OUTNAME}_oriented.nii.gz
 
+$ANTSDIR/PermuteFlipImageOrientationAxes 3 \
+        $MRI_OUTDIR/${MRI_OUTNAME}_oriented.nii.gz \
+        $MRI_OUTDIR/${MRI_OUTNAME}.nii.gz \
+        $HISTO_ORIENT
+                                         
+$ANTSDIR/PermuteFlipImageOrientationAxes 3 \
+        $MRILABEL_OUTDIR/${MRILABEL_OUTNAME}_oriented.nii.gz \
+        $MRILABEL_OUTDIR/${MRILABEL_OUTNAME}.nii.gz \
+        $HISTO_ORIENT
 
-# If you use the inverse you should apply reorient first then flip
-# The given mri image is the standard orientation (here named after _oriented)
-# Here we permute the axis to match with the direction of the input histology image
+$ANTSDIR/PermuteFlipImageOrientationAxes 3 \
+        $MRIMASK_OUTDIR/${MRIMASK_OUTNAME}_oriented.nii.gz \
+        $MRIMASK_OUTDIR/${MRIMASK_OUTNAME}.nii.gz \
+        $HISTO_ORIENT
 
-$C3DDIR/c3d $MRI_OUTDIR/${MRI_OUTNAME}_oriented.nii.gz \
--pa $orient_inverse \
-$flip_option \
--orient RAI -origin 0x0x0mm \
--o $MRI_OUTDIR/${MRI_OUTNAME}.nii.gz 
 
-$C3DDIR/c3d $MRILABEL_OUTDIR/${MRILABEL_OUTNAME}_oriented.nii.gz \
--pa $orient_inverse \
-$flip_option \
--orient RAI -origin 0x0x0mm \
--o $MRILABEL_OUTDIR/${MRILABEL_OUTNAME}.nii.gz 
+$C3DDIR/c3d $MRI_OUTDIR/${MRI_OUTNAME}.nii.gz \
+            -orient RAI -origin 0x0x0mm \
+            -o $MRI_OUTDIR/${MRI_OUTNAME}.nii.gz 
 
-$C3DDIR/c3d $MRIMASK_OUTDIR/${MRIMASK_OUTNAME}_oriented.nii.gz \
--pa $orient_inverse \
-$flip_option \
--orient RAI -origin 0x0x0mm \
--o $MRIMASK_OUTDIR/${MRIMASK_OUTNAME}.nii.gz 
+$C3DDIR/c3d $MRILABEL_OUTDIR/${MRILABEL_OUTNAME}.nii.gz \
+            -orient RAI -origin 0x0x0mm \
+            -o $MRILABEL_OUTDIR/${MRILABEL_OUTNAME}.nii.gz 
+
+$C3DDIR/c3d $MRIMASK_OUTDIR/${MRIMASK_OUTNAME}.nii.gz \
+            -orient RAI -origin 0x0x0mm \
+            -o $MRIMASK_OUTDIR/${MRIMASK_OUTNAME}.nii.gz 
+
+
 
 
 

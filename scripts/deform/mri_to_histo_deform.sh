@@ -49,7 +49,7 @@ if ((${M2H_DEFORM_DIM}==3)); then
   exe "deform3D" 4 mri_to_histo_3D.qsub.sh \
     ${HISTO_VOLUME_INDIR} ${HISTO_VOLUME_INNAME} \
     ${MRI_VOLUME_INDIR} ${MRI_VOLUME_INNAME} ${MRILABEL_VOLUME_INDIR} ${MRILABEL_VOLUME_INNAME} \
-    ${TX_INIT_DIR} ${TX_INIT_NAME} ${TX_DIR}\
+    ${TX_INIT_DIR} ${TX_INIT_NAME} ${TX_DIR} \
     ${MRI_VOLUME_OUTDIR} ${MRILABEL_VOLUME_OUTDIR} ${MRI_SLICE_OUTDIR} ${MRILABEL_SLICE_OUTDIR}
 
   qblock "deform3D"
@@ -61,8 +61,7 @@ elif ((${M2H_DEFORM_DIM}==2)); then
 
   nslices=`ls -1 ${MRI_SLICE_INDIR} | grep "\.nii\.gz" | wc -l`
 
-  for ((k=0;k<nslices;k++))
-  do
+  for ((k=0;k<nslices;k++));do
     kpad=`printf %05d $k`
 
     exe "deform2D" 1 mri_to_histo_2D.qsub.sh \
@@ -77,18 +76,9 @@ elif ((${M2H_DEFORM_DIM}==2)); then
   echo "Building a 3D volume [ $H2MDIR/volume/inplane_MR_to_histo.nii.gz ]"
 
   # Get the information for spacing
-  spacingx=$HSPACEX
-  spacingy=$HSPACEY
+  spacingx=$RESPACEX
+  spacingy=$RESPACEY
   spacingz=$HSPACEZ
-  orient=${HISTO_ORIENT}
-  flip=${HISTO_FLIP}
-
-  if [ -n "$flip" ] 
-  then
-    flip_option="-flip $flip"
-  else
-    flip_option=''
-  fi
 
   $PROGDIR/imageSeriesToVolume -o "${MRI_VOLUME_OUTDIR}/inplane_M2H.nii.gz" \
                                -sx $spacingx -sy $spacingy -sz $spacingz \
@@ -98,15 +88,22 @@ elif ((${M2H_DEFORM_DIM}==2)); then
                                -sx $spacingx -sy $spacingy -sz $spacingz \
                                -i `ls -1 ${MRILABEL_SLICE_OUTDIR}/*.nii.gz`
 
-  $C3DDIR/c3d ${MRI_VOLUME_OUTDIR}/inplane_M2H.nii.gz \
-              $flip_option \
-          -pa $orient \
-      -orient RAI -origin 0x0x0mm \
-           -o ${MRI_VOLUME_OUTDIR}/inplane_M2H_oriented.nii.gz 
+  
+  $ANTSDIR/PermuteFlipImageOrientationAxes 3 \
+          ${MRI_VOLUME_OUTDIR}/inplane_M2H.nii.gz \
+          ${MRI_VOLUME_OUTDIR}/inplane_M2H_oriented.nii.gz \
+          $HISTO_REV_ORIENT
 
-  $C3DDIR/c3d ${MRILABEL_VOLUME_OUTDIR}/inplane_M2H_label.nii.gz \
-              $flip_option \
-          -pa $orient \
-      -orient RAI -origin 0x0x0mm \
-           -o ${MRILABEL_VOLUME_OUTDIR}/inplane_M2H_label_oriented.nii.gz 
+  $ANTSDIR/PermuteFlipImageOrientationAxes 3 \
+          ${MRILABEL_VOLUME_OUTDIR}/inplane_M2H_label.nii.gz \
+          ${MRILABEL_VOLUME_OUTDIR}/inplane_M2H_label_oriented.nii.gz \
+          $HISTO_REV_ORIENT
+
+  $C3DDIR/c3d ${MRI_VOLUME_OUTDIR}/inplane_M2H_oriented.nii.gz \
+              -orient RAI -origin 0x0x0mm \
+              -o ${MRI_VOLUME_OUTDIR}/inplane_M2H_oriented.nii.gz 
+
+  $C3DDIR/c3d ${MRILABEL_VOLUME_OUTDIR}/inplane_M2H_label_oriented.nii.gz \
+              -orient RAI -origin 0x0x0mm \
+              -o ${MRILABEL_VOLUME_OUTDIR}/inplane_M2H_label_oriented.nii.gz 
 fi

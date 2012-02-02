@@ -54,27 +54,24 @@ $PROGDIR/ConvertImageSeries ${MRILABEL_SLICE_OUTDIR} 3Ddeform_M2H_label_%05d.nii
 
 # Get the information for spacing
 spacingx=$HSPACEX
-spacingy=$HSPACEY
-spacingz=$HSPACEZ
-orient=${HISTO_ORIENT}
-flip=${HISTO_FLIP}
+spacingy=$RESPACEY
+spacingz=$RESPACEZ
 
-if [ -n "$flip" ] 
-then
-	flip_option="-flip $flip"
-else
-	flip_option=''
-fi
+$ANTSDIR/PermuteFlipImageOrientationAxes 3 \
+        ${MRI_VOLUME_OUTDIR}/3Ddeform_M2H.nii.gz \
+        ${MRI_VOLUME_OUTDIR}/3Ddeform_M2H_oriented.nii.gz \
+        $HISTO_REV_ORIENT
 
-$C3DDIR/c3d ${MRI_VOLUME_OUTDIR}/3Ddeform_M2H.nii.gz \
-$flip_option \
--pa $orient \
--orient RAI -origin 0x0x0mm \
--o "${MRI_VOLUME_OUTDIR}/3Ddeform_M2H_oriented.nii.gz" 
+$ANTSDIR/PermuteFlipImageOrientationAxes 3 \
+        ${MRILABEL_VOLUME_OUTDIR}/3Ddeform_M2H_label.nii.gz \
+        ${MRILABEL_VOLUME_OUTDIR}/3Ddeform_M2H_label_oriented.nii.gz \
+        $HISTO_REV_ORIENT
 
-$C3DDIR/c3d ${MRILABEL_VOLUME_OUTDIR}/3Ddeform_M2H_label.nii.gz \
-$flip_option \
--pa $orient \
--orient RAI -origin 0x0x0mm \
--o "${MRILABEL_VOLUME_OUTDIR}/3Ddeform_M2H_label_oriented.nii.gz" 
+$C3DDIR/c3d ${MRI_VOLUME_OUTDIR}/3Ddeform_M2H_oriented.nii.gz \
+            -orient RAI -origin 0x0x0mm \
+            -o "${MRI_VOLUME_OUTDIR}/3Ddeform_M2H_oriented.nii.gz" 
+
+$C3DDIR/c3d ${MRILABEL_VOLUME_OUTDIR}/3Ddeform_M2H_label_oriented.nii.gz \
+            -orient RAI -origin 0x0x0mm \
+            -o "${MRILABEL_VOLUME_OUTDIR}/3Ddeform_M2H_label_oriented.nii.gz" 
 

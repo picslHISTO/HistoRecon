@@ -5,7 +5,8 @@ python parser.py \
       --histo-mask-in /home/liuyang/data/Histo/Rob/1026-mask \
       --mri-in /home/liuyang/data/mri/canon_T1_r_halfsize_origin000_masked.nii.gz \
       --mri-label-in /home/liuyang/data/mri/waxholm_label_halfsize_origin000.nii.gz \
-      --histo-spacing 0.00504x0.00504x0.150 \
+      --histo-orient RSP \
+      --histo-spacing 0.00054x0.00054x0.150 \
       --data-out /home/liuyang/project/HistoRecon/1026 \
       --ants-dir /home/songgang/project/ANTS/gccrel-st-noFFTW \
       --c3d-dir /home/liuyang/bin/bin \

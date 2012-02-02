@@ -7,6 +7,42 @@ import argparse
 import subprocess
 import glob
 
+# function for getting the orientation of the image correct
+# this function telling you what transform gives the current orientation from RAI
+def threeD_orient(RAI_orient):
+  orientList=[['R','L'],['A','P'],['I','S']]
+  # first check whether the input is a three letter long argument
+  if ( len(RAI_orient) != 3):
+    print "The orientation should be 3 letters"
+    return
+  # pa is the permuting of the axis, flip is the flipping of the axis
+  pa = []
+  flip = []
+  for letter in RAI_orient.upper():
+    for i in range(3):
+      for j in range(2):
+        if letter == orientList[i][j]:
+          pa.append(i)
+          flip.append(j)
+          continue
+  if (sorted(pa) != [0,1,2]):
+    print "Wrong orientation input"
+    return 
+  return pa + flip
+
+# this gives the orientation for the reverse of the orientation 
+def rev_orient(orient_in):
+  # extract components 
+  pa_in = orient_in[0:3]  
+  flip_in = orient_in[3:6]
+  pa = range(3)
+  # invert the orientation and change the flip 
+  for i in range(3):
+    pa[pa_in[i]] = i
+  flip = [flip_in[i] for i in pa]
+  return pa + flip
+
+
 # function to read the import and the input directories and output directories
 def main(argv=sys.argv):
 
@@ -22,16 +58,13 @@ def main(argv=sys.argv):
       help='histology mask input raw directory',
       default = "")
 
-  # histology input spacing, orientation(permute axis and flip) and other info
+  # histology input spacing, orientation 
   parser.add_argument('--histo-spacing', 
       help='the spacing info of the histology image, e.g. 3x3x2',
       required = True)
-  parser.add_argument('--histo-flip', 
-      help='axis of histology 3D image to flip',
-      default = 'xyz')
-  parser.add_argument('--histo-permute-axis', 
-      help='reorient axis of histology 3D image',
-      default = 'xzy')
+  parser.add_argument('--histo-orient', 
+      help='orientation of histology 3D image, e.g. SRP',
+      required = True)
 
   # mri and label input directory
   parser.add_argument('--mri-in', 
@@ -59,9 +92,6 @@ def main(argv=sys.argv):
       required = True)
   parser.add_argument('--magick-dir', 
       help='ImageMagick binary directory',
-      required = True)
-  parser.add_argument('--matlab-dir', 
-      help='MATLAB binary directory',
       required = True)
   parser.add_argument('--prog-dir', 
       help='program binary directory',
@@ -146,8 +176,12 @@ def main(argv=sys.argv):
   f_out.writelines('HSPACEZ=' + histo_spacing[2] + '\n')
 
   f_out.writelines('# histology orientation info \n')
-  f_out.writelines('HISTO_FLIP=' + args.histo_flip + '\n')
-  f_out.writelines('HISTO_ORIENT=' + args.histo_permute_axis + '\n')
+  histo_orient = threeD_orient(args.histo_orient)
+  histo_rev_orient = rev_orient(histo_orient)
+  histo_orient_str = ' '.join([str(num) for num in histo_orient])
+  histo_rev_orient_str = ' '.join([str(num) for num in histo_rev_orient])
+  f_out.writelines('HISTO_ORIENT=\"' + histo_orient_str + '\"\n')
+  f_out.writelines('HISTO_REV_ORIENT=\"' + histo_rev_orient_str + '\"\n')
 
   f_out.writelines('# MRI Waxholm directory \n')
   f_out.writelines('MRI_WAXHOLM_FILE=' + mri_waxholm_file + '\n') 
@@ -160,7 +194,6 @@ def main(argv=sys.argv):
   f_out.writelines('C3DDIR=' + args.c3d_dir + '\n')
   f_out.writelines('FSLDIR=' + args.fsl_dir + '\n')
   f_out.writelines('MAGICKDIR=' + args.magick_dir + '\n')
-  f_out.writelines('MATLABDIR=' + args.matlab_dir + '\n')
   f_out.writelines('PROGDIR=' + args.prog_dir + '\n')
 
   f_out.writelines('# histology resize and pad info \n')
@@ -176,7 +209,6 @@ def main(argv=sys.argv):
   f_out.writelines('# resized histology spacing info \n')
   f_out.writelines('RESPACEX=' + histo_spacing[0] + '\n')
   f_out.writelines('RESPACEY=' + histo_spacing[1] + '\n')
-
 
 
   f_out.writelines('# histology stacking recon parameters \n')

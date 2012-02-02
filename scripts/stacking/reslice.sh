@@ -211,14 +211,6 @@ qblock "reslice"
 echo "Building a 3D volume [$STACKINGDIR/volume/]"
 echo $STACKINGDIR
 
-
-if [ -n "$HISTO_FLIP" ] 
-then
-	flip_option="-flip $HISTO_FLIP"
-else
-	flip_option=''
-fi
-
 spacingx=$RESPACEX
 spacingy=$RESPACEY
 spacingz=$HSPACEZ
@@ -231,17 +223,23 @@ $PROGDIR/imageSeriesToVolume -o "$STACKINGDIR/volume/mask/reslice_histo_mask.nii
                              -sx $spacingx -sy $spacingy -sz $spacingz \
                              -i `ls -1 $STACKINGDIR/reslice/mask/*.nii.gz`
 
-$C3DDIR/c3d $STACKINGDIR/volume/reslice_histo.nii.gz \
-$flip_option \
--pa $HISTO_ORIENT \
--orient RAI -origin 0x0x0mm \
--o $STACKINGDIR/volume/reslice_histo_oriented.nii.gz \
+$ANTSDIR/PermuteFlipImageOrientationAxes 3 \
+        $STACKINGDIR/volume/reslice_histo.nii.gz \
+        $STACKINGDIR/volume/reslice_histo_oriented.nii.gz \
+        $HISTO_REV_ORIENT
 
-$C3DDIR/c3d $STACKINGDIR/volume/mask/reslice_histo_mask.nii.gz \
-$flip_option \
--pa $HISTO_ORIENT \
--orient RAI -origin 0x0x0mm \
--o $STACKINGDIR/volume/mask/reslice_histo_mask_oriented.nii.gz 
+$ANTSDIR/PermuteFlipImageOrientationAxes 3 \
+        $STACKINGDIR/volume/mask/reslice_histo_mask.nii.gz \
+        $STACKINGDIR/volume/mask/reslice_histo_mask_oriented.nii.gz \
+        $HISTO_REV_ORIENT
+
+$C3DDIR/c3d $STACKINGDIR/volume/reslice_histo_oriented.nii.gz \
+            -orient RAI -origin 0x0x0mm \
+            -o $STACKINGDIR/volume/reslice_histo_oriented.nii.gz \
+
+$C3DDIR/c3d $STACKINGDIR/volume/mask/reslice_histo_mask_oriented.nii.gz \
+            -orient RAI -origin 0x0x0mm \
+            -o $STACKINGDIR/volume/mask/reslice_histo_mask_oriented.nii.gz 
 
 # codes for ants deformable (not used here)
 		# elif [[ ${STACKING_RECON_PROG} == "ANTS" ]]; then
