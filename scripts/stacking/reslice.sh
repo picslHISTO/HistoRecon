@@ -36,13 +36,13 @@ echo -e "Number of slices = $nslices\n"
 
 # The user can specify a slice used as the reference.
 # If not, we will select the half-way slice as the reference
-if [ ! $REFERENCE_SLICE ]
+if [ ! $REF_SLICE ]
 then
   echo -e "\n**No reference slice supplied!**\n"
   iref=`expr $nslices / 2`
-  REFERENCE_SLICE=${slices[${iref}]}
+  REF_SLICE=${slices[${iref}]}
 fi
-echo -e "Using $REFERENCE_SLICE as the reference\n"
+echo -e "Using $REF_SLICE as the reference\n"
 
 ####################################################
 #  Shortest Path
@@ -82,7 +82,7 @@ function ShortestPath()
 
   # Compute the file telling us the predecessor for each individual
   # regpath computes the shortest path (??) to the reference slices
-  $PROGDIR/regpath $adjfile $REFERENCE_SLICE 1.0 > $pathfile
+  $PROGDIR/regpath $adjfile $REF_SLICE 1.0 > $pathfile
   echo "Wrote predecessor info into $pathfile"
 }
 
@@ -102,12 +102,12 @@ rm -rf $STACKINGDIR/accum/*.txt
 # Create an identity transform for the reference slice
 if [[ ${STACKING_RECON_PROG} == "ANTS" ]]; then
 	# using ANTS
-  ls $STACKINGDIR/tx/* | grep ${REFERENCE_SLICE} | head -n 1 | tail -n 1 | xargs cat | sed -r "s/^Parameters:.*/Parameters:\ 1 \ 0 \ 0 \ 1 \ 0 \ 0/g" \
-    > "$STACKINGDIR/accum/linear_${REFERENCE_SLICE}_to_${REFERENCE_SLICE}_Affine.txt"
+  ls $STACKINGDIR/tx/* | grep ${REF_SLICE} | head -n 1 | tail -n 1 | xargs cat | sed -r "s/^Parameters:.*/Parameters:\ 1 \ 0 \ 0 \ 1 \ 0 \ 0/g" \
+    > "$STACKINGDIR/accum/linear_${REF_SLICE}_to_${REF_SLICE}_Affine.txt"
 else
 	# using FSL
 	echo -e "1 0 0 0\n0 1 0 0\n0 0 1 0\n0 0 0 1\n" \
-    	 > "$STACKINGDIR/accum/linear_${REFERENCE_SLICE}_to_${REFERENCE_SLICE}.mat"
+    	 > "$STACKINGDIR/accum/linear_${REF_SLICE}_to_${REF_SLICE}.mat"
 fi
 
 # Now, define a recursive function that for each slice finds its predecessor
@@ -116,32 +116,37 @@ Accumulate_ANTS()
   local moving=$1
   local target=`grep "^$1" < $pathfile | sed -e "s/ /\n/g" | head -n 2 | tail -n 1`
   
-  local movingtx="linear_${moving}_to_${REFERENCE_SLICE}_Affine"
-  local targettx="linear_${target}_to_${REFERENCE_SLICE}_Affine"
-  local inttx="linear_${moving}_to_${target}_Affine"
+
+
+  local movingtx="linear_${REF_SLICE}_to_${moving}_Affine"
+  local targettx="linear_${REF_SLICE}_to_${target}_Affine"
+  local inttx="linear_${target}_to_${moving}_Affine"
+
 
   # intinvtx is the inverse transform of inttx
-  local intinvtx="linear_${target}_to_${moving}_Affine"
+  local intinvtx="linear_${moving}_to_${target}_Affine"
 
   if [ ! -f "$STACKINGDIR/accum/${movingtx}.txt" ]; then
     if [ ! -f "$STACKINGDIR/accum/${targettx}.txt" ]; then
       # Call up the chain
-      Accumulate_ANTS $target
+      Accumulate_ANTS ${target}
     fi
 
-    echo "Combining $inttx and $targettx to form $movingtx"
+    echo "Combining ${targettx} and ${inttx} to form ${movingtx}"
 	
     # Use the inverse transform if the forward transform does not exist
     if [ ! -f "$STACKINGDIR/tx/${inttx}.txt" ]; then
     
       # linear transform version
       $ANTSDIR/ComposeMultiTransform 2 $STACKINGDIR/accum/${movingtx}.txt \
-      -R  $STACKINGDIR/accum/linear_${REFERENCE_SLICE}_to_${REFERENCE_SLICE}_Affine.txt \
-      -i $STACKINGDIR/tx/${intinvtx}.txt $STACKINGDIR/accum/${targettx}.txt
+              -R  $STACKINGDIR/accum/linear_${REF_SLICE}_to_${REF_SLICE}_Affine.txt \
+              $STACKINGDIR/accum/${targettx}.txt \
+              -i $STACKINGDIR/tx/${intinvtx}.txt 
     
     else
-      $ANTSDIR/ComposeMultiTransform 2 $STACKINGDIR/accum/${movingtx}.txt $STACKINGDIR/tx/${inttx}.txt $STACKINGDIR/accum/${targettx}.txt
-        
+      $ANTSDIR/ComposeMultiTransform 2 $STACKINGDIR/accum/${movingtx}.txt \
+              $STACKINGDIR/accum/${targettx}.txt \
+              $STACKINGDIR/tx/${inttx}.txt 
     fi
   fi
 }
@@ -153,8 +158,8 @@ Accumulate_FSL()
 	local moving=$1
 	local target=`grep "^$1" < $pathfile | sed -e "s/ /\n/g" | head -n 2 | tail -n 1`
   
-	local movingtx="linear_${moving}_to_${REFERENCE_SLICE}"
-	local targettx="linear_${target}_to_${REFERENCE_SLICE}"
+	local movingtx="linear_${moving}_to_${REF_SLICE}"
+	local targettx="linear_${target}_to_${REF_SLICE}"
 	local inttx="linear_${moving}_to_${target}"
 
 	if [ ! -f "$STACKINGDIR/accum/${movingtx}.mat" ]; then
@@ -202,7 +207,7 @@ do
 	mask=${masks[${i}]}
 
   exe "reslice.$i" 1 reslice.qsub.sh \
-  $mov $REFERENCE_SLICE $mask $ipad
+  $mov $REF_SLICE $mask $ipad
 done
 
 qblock "reslice"

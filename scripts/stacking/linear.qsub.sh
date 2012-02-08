@@ -14,10 +14,9 @@ fix2mov="linear_${fixed}_to_${moving}"
 
 # Perform 2D registration of slices
 echo "3-parameter registration of ${moving} to ${fixed}..."
+# while the registration is moving to fixed, the transformation is from moving to fixed
 
-echo $fixed $moving $mov2fix
-
-# this may used to directly calculate the measure 
+# this may be used to directly calculate the measure 
 # cat $OUTPUTDIR/linear_${mov2fix}.txt | sed -e "s/final measure value (MMI): rval = //g" \
 #       > $STACKINGDIR/metric/.txt
 
@@ -27,30 +26,30 @@ if [[ ${STACKING_RECON_PROG} == "ANTS" ]]; then
     # use 2D affine transformations
     $ANTSDIR/ANTS 2 \
                  -m MI["$GRAYDIR/${fixed}.nii.gz","$GRAYDIR/${moving}.nii.gz",1,32] \
-                 -o "$STACKINGDIR/tx/${mov2fix}_" \
+                 -o "$STACKINGDIR/tx/${fix2mov}_" \
                  -x $MASKDIR/${mask}.nii.gz \
                  -i 0 \
                  --affine-metric-type MI \
                  --MI-option 32x10000 \
                  --number-of-affine-iterations 10000x10000x10000 \
-                 > "$OUTPUTDIR/linear_${mov2fix}.txt"
+                 > "$OUTPUTDIR/linear_${fix2mov}.txt"
 
   elif (( ${STACKING_RECON_DOF} == 3 )); then
     # Degrees of Freedom = 3, use 2D rigid transformations
     $ANTSDIR/ANTS 2 \
                  -m MI["$GRAYDIR/${fixed}.nii.gz","$GRAYDIR/${moving}.nii.gz",1,32] \
-                 -o "$STACKINGDIR/tx/${mov2fix}_" \
+                 -o "$STACKINGDIR/tx/${fix2mov}_" \
                  -i 0 \
                  --affine-metric-type MI \
                  --MI-option 32x10000 \
                  --number-of-affine-iterations 10000x10000x10000 \
                  --rigid-affine true \
-                 > "$OUTPUTDIR/linear_${mov2fix}.txt"
+                 > "$OUTPUTDIR/linear_${fix2mov}.txt"
   fi
 
   $ANTSDIR/WarpImageMultiTransform 2 "$GRAYDIR/${moving}.nii.gz" \
-                                     "$STACKINGDIR/warp/${mov2fix}.nii.gz" \
-                                     "$STACKINGDIR/tx/${mov2fix}_Affine.txt" \
+                                     "$STACKINGDIR/warp/${fix2mov}.nii.gz" \
+                                     "$STACKINGDIR/tx/${fix2mov}_Affine.txt" \
                                   -R "$GRAYDIR/${fixed}.nii.gz"
                   
 
@@ -79,19 +78,19 @@ elif [[ ${STACKING_RECON_PROG} == "FSL" ]]; then
 #                -m MI["$GRAYDIR/${fixed}.nii.gz","$GRAYDIR/${moving}.nii.gz",1,32] \
 #                -t SyN[0.25] \
 #                -r Gauss[1] \
-#                -o "$STACKINGDIR/tx/${mov2fix}_" \
+#                -o "$STACKINGDIR/tx/${fix2mov}_" \
 #                -x "$MASKDIR/${mask}.nii.gz" \
 #                -i 100x100 \
 #                --affine-metric-type MI \
 #                --MI-option 32x10000 \
 #                --use-Histogram-Matching \
 #                --number-of-affine-iterations 10000x10000x10000 \
-#                > "$OUTPUTDIR/linear_${mov2fix}.txt"
+#                > "$OUTPUTDIR/linear_${fix2mov}.txt"
 # 
 #   $ANTSDIR/WarpImageMultiTransform 2 "$GRAYDIR/${moving}.nii.gz" \
-#                                      "$STACKINGDIR/warp/${mov2fix}.nii.gz" \
-#                                      "$STACKINGDIR/tx/${mov2fix}_Warp.nii.gz" \
-#                                      "$STACKINGDIR/tx/${mov2fix}_Affine.txt" \
+#                                      "$STACKINGDIR/warp/${fix2mov}.nii.gz" \
+#                                      "$STACKINGDIR/tx/${fix2mov}_Warp.nii.gz" \
+#                                      "$STACKINGDIR/tx/${fix2mov}_Affine.txt" \
 #                                   -R "$GRAYDIR/${fixed}.nii.gz"
 fi
 
@@ -101,13 +100,13 @@ fi
 
 #   min normalized correlation (ncor) metric: -1.0 (best match)
 #   max normalized mutual information (nmi) metric: 2.0 (best match)
-echo "Compute metric between ${fixed} and ${moving} and ${mov2fix}..."
+echo "Compute metric between ${fixed} and ${moving} and ${fix2mov}..."
 
 $C3DDIR/c2d "$GRAYDIR/${fixed}.nii.gz" "$GRAYDIR/${moving}.nii.gz" -ncor \
             | grep "NCOR" | tail -n 1 | sed -e "s/.*= -//" \
             > "$STACKINGDIR/metric/metric_ncor_${mov2fix}.txt"
             
-$C3DDIR/c2d "$GRAYDIR/${fixed}.nii.gz" "$STACKINGDIR/warp/${mov2fix}.nii.gz" -ncor \
+$C3DDIR/c2d "$GRAYDIR/${fixed}.nii.gz" "$STACKINGDIR/warp/${fix2mov}.nii.gz" -ncor \
             | grep "NCOR" | tail -n 1 | sed -e "s/.*= -//" \
             >> "$STACKINGDIR/metric/metric_ncor_${mov2fix}.txt"
 

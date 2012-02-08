@@ -21,8 +21,7 @@ rm -rf $LABELDIR/orig/*.*
 
 nslices=`ls $DEFORMDIR/reslice/label | grep "\.nii\.gz" | wc -l`
 
-for ((i=0; i < $nslices; i++)) 
-do
+for ((i=0; i < $nslices; i++)); do
   ipad=`printf %05d $i`
   let num=i+1
   exe "label_warp_${ipad}" 1 label_warp.qsub.sh \
@@ -30,4 +29,3 @@ do
 done
 
 qblock "label_warp"
-
