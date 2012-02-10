@@ -55,7 +55,7 @@ do
      fixed=`head -n $j $listfile | tail -n 1`
 		 mask=`head -n $j $maskfile | tail -n 1`
 		
-    exe "linear.mov_${moving}_fix_${fixed}" 1 linear.qsub.sh \
+    exe "linear.fix_${fixed}_mov_${moving}" 1 linear.qsub.sh \
       $fixed $moving $mask 
   done
 done

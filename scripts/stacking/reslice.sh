@@ -60,21 +60,22 @@ function ShortestPath()
 
   # Build the adjacency list from the alignment computations
   adjfile=$STACKINGDIR/paths/adjacency.txt
-  for i in ${slices[*]}
+  for moving in ${slices[*]}
   do
     local hops=0
     # get match between slice i and its 5 neighbours
-    for j in `grep "metric_ncor_linear_${i}" < $matchlist`
+    for transfile in `grep "metric_ncor_.*_mov_${moving}" < $matchlist`
     do
       # final metric value is 2nd line in file
       # (1st line is initial metric value)
-      match=`cat $STACKINGDIR/metric/$j | tail -n 1`
+      match=`cat $STACKINGDIR/metric/$transfile | tail -n 1`
       match=`python -c "print 1 - $match"`
       if [ ! $match ]
       then
         match="0.00"
       fi
-      echo `echo $j | sed -e "s/metric_ncor_linear_//" -e "s/_to_/ /" -e "s/\..*//"` $match $hops
+      fixed=`echo $transfile | sed -e "s/.*_fix_//" -e "s/_mov_.*//"`
+      echo $moving $fixed $match $hops
       let hops=hops+1
     done
   done > $adjfile
@@ -103,49 +104,48 @@ rm -rf $STACKINGDIR/accum/*.txt
 if [[ ${STACKING_RECON_PROG} == "ANTS" ]]; then
 	# using ANTS
   ls $STACKINGDIR/tx/* | grep ${REF_SLICE} | head -n 1 | tail -n 1 | xargs cat | sed -r "s/^Parameters:.*/Parameters:\ 1 \ 0 \ 0 \ 1 \ 0 \ 0/g" \
-    > "$STACKINGDIR/accum/linear_${REF_SLICE}_to_${REF_SLICE}_Affine.txt"
+    > "$STACKINGDIR/accum/linear_fix_${REF_SLICE}_mov_${REF_SLICE}_Affine.txt"
 else
 	# using FSL
 	echo -e "1 0 0 0\n0 1 0 0\n0 0 1 0\n0 0 0 1\n" \
-    	 > "$STACKINGDIR/accum/linear_${REF_SLICE}_to_${REF_SLICE}.mat"
+    	 > "$STACKINGDIR/accum/linear_fix_${REF_SLICE}_mov_${REF_SLICE}.mat"
 fi
 
 # Now, define a recursive function that for each slice finds its predecessor
 Accumulate_ANTS()
 {
-  local moving=$1
-  local target=`grep "^$1" < $pathfile | sed -e "s/ /\n/g" | head -n 2 | tail -n 1`
+  local new=$1
+  local pre=`grep "^$1" < $pathfile | sed -e "s/ /\n/g" | head -n 2 | tail -n 1`
   
 
 
-  local movingtx="linear_${REF_SLICE}_to_${moving}_Affine"
-  local targettx="linear_${REF_SLICE}_to_${target}_Affine"
-  local inttx="linear_${target}_to_${moving}_Affine"
-
+  local newtx="linear_fix_${REF_SLICE}_mov_${new}_Affine"
+  local pretx="linear_fix_${REF_SLICE}_mov_${pre}_Affine"
+  local inttx="linear_fix_${pre}_mov_${new}_Affine"
 
   # intinvtx is the inverse transform of inttx
-  local intinvtx="linear_${moving}_to_${target}_Affine"
+  local intinvtx="linear_fix_${new}_mov_${pre}_Affine"
 
-  if [ ! -f "$STACKINGDIR/accum/${movingtx}.txt" ]; then
-    if [ ! -f "$STACKINGDIR/accum/${targettx}.txt" ]; then
+  if [ ! -f "$STACKINGDIR/accum/${newtx}.txt" ]; then
+    if [ ! -f "$STACKINGDIR/accum/${pretx}.txt" ]; then
       # Call up the chain
-      Accumulate_ANTS ${target}
+      Accumulate_ANTS ${pre}
     fi
 
-    echo "Combining ${targettx} and ${inttx} to form ${movingtx}"
+    echo "Combining ${pretx} and ${inttx} to form ${newtx}"
 	
     # Use the inverse transform if the forward transform does not exist
     if [ ! -f "$STACKINGDIR/tx/${inttx}.txt" ]; then
     
       # linear transform version
-      $ANTSDIR/ComposeMultiTransform 2 $STACKINGDIR/accum/${movingtx}.txt \
-              -R  $STACKINGDIR/accum/linear_${REF_SLICE}_to_${REF_SLICE}_Affine.txt \
-              $STACKINGDIR/accum/${targettx}.txt \
+      $ANTSDIR/ComposeMultiTransform 2 $STACKINGDIR/accum/${newtx}.txt \
+              -R  $STACKINGDIR/accum/linear_fix_${REF_SLICE}_mov_${REF_SLICE}_Affine.txt \
+              $STACKINGDIR/accum/${pretx}.txt \
               -i $STACKINGDIR/tx/${intinvtx}.txt 
     
     else
-      $ANTSDIR/ComposeMultiTransform 2 $STACKINGDIR/accum/${movingtx}.txt \
-              $STACKINGDIR/accum/${targettx}.txt \
+      $ANTSDIR/ComposeMultiTransform 2 $STACKINGDIR/accum/${newtx}.txt \
+              $STACKINGDIR/accum/${pretx}.txt \
               $STACKINGDIR/tx/${inttx}.txt 
     fi
   fi
@@ -155,23 +155,24 @@ Accumulate_ANTS()
 
 Accumulate_FSL()
 {
-	local moving=$1
-	local target=`grep "^$1" < $pathfile | sed -e "s/ /\n/g" | head -n 2 | tail -n 1`
+	local new=$1
+	local pre=`grep "^$1" < $pathfile | sed -e "s/ /\n/g" | head -n 2 | tail -n 1`
   
-	local movingtx="linear_${moving}_to_${REF_SLICE}"
-	local targettx="linear_${target}_to_${REF_SLICE}"
-	local inttx="linear_${moving}_to_${target}"
+	local newtx="linear_fix_${REF_SLICE}_mov_${new}"
+	local pretx="linear_fix_${REF_SLICE}_mov_${pre}"
+	local inttx="linear_fix_${pre}_mov_${new}"
 
-	if [ ! -f "$STACKINGDIR/accum/${movingtx}.mat" ]; then
-		if [ ! -f "$STACKINGDIR/accum/${targettx}.mat" ]; then
+	if [ ! -f "$STACKINGDIR/accum/${newtx}.mat" ]; then
+		if [ ! -f "$STACKINGDIR/accum/${pretx}.mat" ]; then
 			# Call up the chain
-			Accumulate_FSL $target
+			Accumulate_FSL $pre
 		fi
 
-		echo "Combining $inttx and $targettx to form $movingtx"
+		echo "Combining ${pretx} and ${inttx} to form ${newtx}"
 		    
-		$FSLDIR/convert_xfm -omat   "$STACKINGDIR/accum/${movingtx}.mat" \
-							-concat "$STACKINGDIR/accum/${targettx}.mat" \
+    # The concatenate order may be wrong check it later 
+		$FSLDIR/convert_xfm -omat   "$STACKINGDIR/accum/${newtx}.mat" \
+							-concat "$STACKINGDIR/accum/${pretx}.mat" \
 							"$STACKINGDIR/tx/${inttx}.mat"   
   fi
 }
@@ -250,8 +251,8 @@ $C3DDIR/c3d $STACKINGDIR/volume/mask/reslice_histo_mask_oriented.nii.gz \
 		# elif [[ ${STACKING_RECON_PROG} == "ANTS" ]]; then
     # deformable transform version
 	  #      echo "-i $STACKINGDIR/tx/${intinvtx}_Affine.txt $STACKINGDIR/tx/${intinvtx}_InverseWarp.nii.gz" \
-    #	         `cat $STACKINGDIR/accum/${targettx}.txt` \
-		#	     > $STACKINGDIR/accum/${movingtx}.txt
+    #	         `cat $STACKINGDIR/accum/${pretx}.txt` \
+		#	     > $STACKINGDIR/accum/${newtx}.txt
 # fi
 
 
@@ -259,6 +260,6 @@ $C3DDIR/c3d $STACKINGDIR/volume/mask/reslice_histo_mask_oriented.nii.gz \
 		# elif [[ ${STACKING_RECON_PROG} == "ANTS_DEFORMABLE" ]]; then
 			# deformable transform version
 	   #    echo "$STACKINGDIR/tx/${inttx}_Warp.txt $STACKINGDIR/tx/${inttx}_Affine.txt" \
-    #	        `cat $STACKINGDIR/accum/${targettx}.txt` \
-	  # 		     > $STACKINGDIR/accum/${movingtx}.txt
+    #	        `cat $STACKINGDIR/accum/${pretx}.txt` \
+	  # 		     > $STACKINGDIR/accum/${newtx}.txt
 	  # 	fi

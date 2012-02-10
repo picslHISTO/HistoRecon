@@ -86,8 +86,8 @@ $ANTSDIR/PermuteFlipImageOrientationAxes 3 \
         $HISTO_REV_ORIENT
 
 $ANTSDIR/PermuteFlipImageOrientationAxes 3 \
-        $HISTO_OUTDIR/volume/histo_to_mri_mask.nii.gz \
-        $HISTO_OUTDIR/volume/histo_to_mri_mask_oriented.nii.gz \
+        $HISTO_OUTDIR/volume/mask/histo_to_mri_mask.nii.gz \
+        $HISTO_OUTDIR/volume/mask/histo_to_mri_mask_oriented.nii.gz \
         $HISTO_REV_ORIENT
 
 $C3DDIR/c3d $HISTO_OUTDIR/volume/histo_to_mri_oriented.nii.gz \

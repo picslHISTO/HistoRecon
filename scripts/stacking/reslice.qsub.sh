@@ -10,7 +10,7 @@ mask=$3
 ipad=$4
 
 
-tx="linear_${ref}_to_${mov}"
+tx="linear_fix_${ref}_mov_${mov}"
 
 # Reslice the image
 if [[ ${STACKING_RECON_PROG} == "ANTS" ]]; then
