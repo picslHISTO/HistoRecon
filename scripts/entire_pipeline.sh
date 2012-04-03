@@ -59,7 +59,7 @@ fi
 
 if [[ $step4 == True ]]; then
   cd $SCRIPTDIR/deform
-  bash mri_to_histo_deform.sh
+  bash histo_to_mri_deform.sh
 fi
 
 if [[ $step5 == True ]]; then

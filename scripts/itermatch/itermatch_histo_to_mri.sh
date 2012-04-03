@@ -23,7 +23,6 @@ mkdir -p $HISTO_OUTDIR/tx_smooth
 mkdir -p $HISTO_OUTDIR/volume
 mkdir -p $HISTO_OUTDIR/volume/mask
 
-echo python smooth_h2m_transforms.py $H2M_SMOOTH_SIGMA $HISTO_OUTDIR/tx $HISTO_OUTDIR/tx_smooth
 # Submit a job for every image in the source directory
 nslices=`ls -1 ${HISTO_SLICE_INDIR}/*.nii.gz | wc -l`
 
