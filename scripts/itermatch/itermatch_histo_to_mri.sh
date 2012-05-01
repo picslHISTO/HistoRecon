@@ -52,32 +52,17 @@ done
 qblock "H2M_warp" 
 
 # Compute a whole volume
-echo "Building a 3D volume [ $HISTO_OUTDIR/volume/histo_to_mri.nii.gz ]"
-
-# here we read the spacing information 
-
-
-$PROGDIR/imageSeriesToVolume -o "$HISTO_OUTDIR/volume/histo_to_mri.nii.gz" \
-                             -sx $spacingx_orient -sy $spacingy_orient -sz $spacingz_orient \
-                             -i `ls -1 $HISTO_OUTDIR/reslice/*.nii.gz`
-
-$PROGDIR/imageSeriesToVolume -o "$HISTO_OUTDIR/volume/mask/histo_to_mri_mask.nii.gz" \
-                             -sx $spacingx_orient -sy $spacingy_orient -sz $spacingz_orient \
-                             -i `ls -1 $HISTO_OUTDIR/reslice/mask/*.nii.gz`
 echo "Building a 3D volume" 
 
-
-spacingx=$RESPACEX
-spacingy=$RESPACEY
 spacingz=$HSPACEZ
 
-$PROGDIR/imageSeriesToVolume -o "$HISTO_OUTDIR/volume/histo_to_mri.nii.gz" \
-                             -sx $spacingx -sy $spacingy -sz $spacingz \
-                             -i `ls -1 $HISTO_OUTDIR/reslice/*.nii.gz`
+$PROGDIR/ConvertImageSeries -o "$HISTO_OUTDIR/volume/histo_to_mri.nii.gz" \
+                            -sz $spacingz \
+                            -in `ls -1 $HISTO_OUTDIR/reslice/*.nii.gz`
 
-$PROGDIR/imageSeriesToVolume -o "$HISTO_OUTDIR/volume/mask/histo_to_mri_mask.nii.gz" \
-                             -sx $spacingx -sy $spacingy -sz $spacingz \
-                             -i `ls -1 $HISTO_OUTDIR/reslice/mask/*.nii.gz`
+$PROGDIR/ConvertImageSeries -o "$HISTO_OUTDIR/volume/mask/histo_to_mri_mask.nii.gz" \
+                            -sz $spacingz \
+                            -in `ls -1 $HISTO_OUTDIR/reslice/mask/*.nii.gz`
 
 $ANTSDIR/PermuteFlipImageOrientationAxes 3 \
         $HISTO_OUTDIR/volume/histo_to_mri.nii.gz \

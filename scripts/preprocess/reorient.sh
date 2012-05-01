@@ -12,8 +12,6 @@
 # ==============================
 
 source ../common.sh
-spacingx=$RESPACEX
-spacingy=$RESPACEY
 spacingz=$HSPACEZ
 
 INPUTPATH=$GRAYDIR
@@ -40,9 +38,9 @@ done
 
 qblock "reorient"
 
-$PROGDIR/imageSeriesToVolume -o "$VOLUMEPATH/volume.nii.gz" \
-                             -sx $spacingx -sy $spacingy -sz $spacingz \
-                             -i `ls -1 $OUTPUTPATH/*.nii.gz | sort`
+$PROGDIR/ConvertImageSeries -o "$VOLUMEPATH/volume.nii.gz" \
+                           -sz $spacingz \
+                           -in `ls -1 $OUTPUTPATH/*.nii.gz`
 
 $ANTSDIR/PermuteFlipImageOrientationAxes 3 \
         $VOLUMEPATH/volume.nii.gz \
@@ -52,12 +50,6 @@ $ANTSDIR/PermuteFlipImageOrientationAxes 3 \
 $C3DDIR/c3d $VOLUMEPATH/volume.nii.gz \
 -orient RAI -origin 0x0x0mm \
 -o $VOLUMEPATH/volume.nii.gz
-
-# Record the information for the reoriented data
-rm $PARMDIR/spacing_reoriented.txt
-$C3DDIR/c3d $VOLUMEPATH/volume.nii.gz -info-full | grep "pixdim\[[1-3]\]"  | \
-sed -r "s/pixdim\[[1-3]\] = //g" | sed "s/ //g" \
->> $PARMDIR/spacing_reoriented.txt
 
 echo "reorient the mri images"
 

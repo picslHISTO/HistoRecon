@@ -106,7 +106,8 @@ fi
 # Here we cut the mri data
 echo "Making MRI slices"
 
-$PROGDIR/ConvertImageSeries $MRI_OUTDIR/slices ${MRI_OUTNAME}_slice%05d.nii.gz $MRI_OUTDIR/${MRI_OUTNAME}.nii.gz 
-$PROGDIR/ConvertImageSeries $MRI_OUTDIR/slices/label ${MRI_OUTNAME}_label_slice%05d.nii.gz \
-$MRI_OUTDIR/label/${MRI_OUTNAME}_label.nii.gz 
+$PROGDIR/ConvertImageSeries -o $MRI_OUTDIR/slices/${MRI_OUTNAME}_slice%05d.nii.gz \
+                            -in $MRI_OUTDIR/${MRI_OUTNAME}.nii.gz 
+$PROGDIR/ConvertImageSeries -o $MRI_OUTDIR/slices/label/${MRI_OUTNAME}_label_slice%05d.nii.gz \
+                            -in $MRI_OUTDIR/label/${MRI_OUTNAME}_label.nii.gz 
 
