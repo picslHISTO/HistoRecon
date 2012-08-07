@@ -53,12 +53,6 @@ $C3DDIR/c3d $VOLUMEPATH/volume.nii.gz \
 -orient RAI -origin 0x0x0mm \
 -o $VOLUMEPATH/volume.nii.gz
 
-# Record the information for the reoriented data
-rm $PARMDIR/spacing_reoriented.txt
-$C3DDIR/c3d $VOLUMEPATH/volume.nii.gz -info-full | grep "pixdim\[[1-3]\]"  | \
-sed -r "s/pixdim\[[1-3]\] = //g" | sed "s/ //g" \
->> $PARMDIR/spacing_reoriented.txt
-
 echo "reorient the mri images"
 
 MRI_OUTDIR="$DATADIR/input/mri_oriented"
@@ -104,8 +98,5 @@ $C3DDIR/c3d $MRILABEL_OUTDIR/${MRILABEL_OUTNAME}.nii.gz \
 $C3DDIR/c3d $MRIMASK_OUTDIR/${MRIMASK_OUTNAME}.nii.gz \
             -orient RAI -origin 0x0x0mm \
             -o $MRIMASK_OUTDIR/${MRIMASK_OUTNAME}.nii.gz 
-
-
-
 
 

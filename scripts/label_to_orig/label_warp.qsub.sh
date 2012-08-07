@@ -28,12 +28,11 @@ image=`ls $NIFTIDIR | grep "\.nii\.gz" | sed -e "s/\.nii\.gz//g" | head -n $num 
 
 # input image (padded)
 image_padded=`ls $LABELDIR/padded | grep "\.nii\.gz" | sed -e "s/\.nii\.gz//g" | head -n $num | tail -n 1`
+histo_dim=(`$C3DDIR/c2d $NIFTIDIR/${image}.nii.gz -info-full \
+  | grep "Image Dimension" | sed "s/[^0-9 ]//g"`)
 
-# get image information
-sizex=`$C3DDIR/c2d "$NIFTIDIR/${image}.nii.gz" \
-          -info-full | grep " dim\[1\]" | sed -e "s/dim\[1\] = //g" | sed -e "s/\ //g"`
-sizey=`$C3DDIR/c2d "$NIFTIDIR/${image}.nii.gz" \
-          -info-full | grep " dim\[2\]" | sed -e "s/dim\[2\] = //g" | sed -e "s/\ //g"`
+sizex=${histo_dim[0]}
+sizey=${histo_dim[1]}
 let padx=$sizex*HISTO_PAD_PERCENT/100
 let pady=$sizey*HISTO_PAD_PERCENT/100
 
