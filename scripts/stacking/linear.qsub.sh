@@ -100,13 +100,9 @@ fi
 
 #   min normalized correlation (ncor) metric: -1.0 (best match)
 #   max normalized mutual information (nmi) metric: 2.0 (best match)
-echo "Compute metric between ${fixed} and ${moving} and ${fix2mov}..."
+echo "Compute metric between ${fixed} and ${moving} and ${tx}..."
 
-$C3DDIR/c2d "$GRAYDIR/${fixed}.nii.gz" "$GRAYDIR/${moving}.nii.gz" -ncor \
+$C3DDIR/c2d "$GRAYDIR/${fixed}.nii.gz" "$STACKINGDIR/warp/${tx}.nii.gz" -ncor \
             | grep "NCOR" | tail -n 1 | sed -e "s/.*= -//" \
             > "$STACKINGDIR/metric/metric_ncor_${tx}.txt"
-            
-$C3DDIR/c2d "$GRAYDIR/${fixed}.nii.gz" "$STACKINGDIR/warp/${fix2mov}.nii.gz" -ncor \
-            | grep "NCOR" | tail -n 1 | sed -e "s/.*= -//" \
-            >> "$STACKINGDIR/metric/metric_ncor_${tx}.txt"
 
