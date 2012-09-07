@@ -29,7 +29,7 @@ if [[ ${STACKING_RECON_PROG} == "ANTS" ]]; then
                  -o "$STACKINGDIR/tx/${tx}_" \
                  -x $MASKDIR/${mask}.nii.gz \
                  -i 0 \
-                 --affine-metric-type MI \
+                 --affine-metric-type CC \
                  --MI-option 32x10000 \
                  --number-of-affine-iterations 10000x10000x10000 \
                  > "$OUTPUTDIR/linear_${tx}.txt"
@@ -40,7 +40,7 @@ if [[ ${STACKING_RECON_PROG} == "ANTS" ]]; then
                  -m MI["$GRAYDIR/${fixed}.nii.gz","$GRAYDIR/${moving}.nii.gz",1,32] \
                  -o "$STACKINGDIR/tx/${tx}_" \
                  -i 0 \
-                 --affine-metric-type MI \
+                 --affine-metric-type CC \
                  --MI-option 32x10000 \
                  --number-of-affine-iterations 10000x10000x10000 \
                  --rigid-affine true \

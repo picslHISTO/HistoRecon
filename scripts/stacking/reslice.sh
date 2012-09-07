@@ -83,7 +83,7 @@ function ShortestPath()
 
   # Compute the file telling us the predecessor for each individual
   # regpath computes the shortest path (??) to the reference slices
-  $PROGDIR/regpath $adjfile $REF_SLICE 1.0 > $pathfile
+  python $PROGDIR/regpath.py $adjfile $REF_SLICE > $pathfile
   echo "Wrote predecessor info into $pathfile"
 }
 
