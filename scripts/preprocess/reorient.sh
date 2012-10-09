@@ -97,7 +97,3 @@ $C3DDIR/c3d $MRIMASK_OUTDIR/${MRIMASK_OUTNAME}.nii.gz \
             -orient RAI -origin 0x0x0mm \
             -o $MRIMASK_OUTDIR/${MRIMASK_OUTNAME}.nii.gz 
 
-
-
-
-
