@@ -217,17 +217,15 @@ qblock "reslice"
 echo "Building a 3D volume [$STACKINGDIR/volume/]"
 echo $STACKINGDIR
 
-spacingx=$RESPACEX
-spacingy=$RESPACEY
 spacingz=$HSPACEZ
 
-# question: change to Nick's program ConvertImageSeriess
-$PROGDIR/imageSeriesToVolume -o "$STACKINGDIR/volume/reslice_histo.nii.gz" \
-                             -sx $spacingx -sy $spacingy -sz $spacingz \
-                             -i `ls -1 $STACKINGDIR/reslice/*.nii.gz`
-$PROGDIR/imageSeriesToVolume -o "$STACKINGDIR/volume/mask/reslice_histo_mask.nii.gz" \
-                             -sx $spacingx -sy $spacingy -sz $spacingz \
-                             -i `ls -1 $STACKINGDIR/reslice/mask/*.nii.gz`
+# question: change to Nick's program ConvertImageSeries
+$PROGDIR/ConvertImageSeries -o "$STACKINGDIR/volume/reslice_histo.nii.gz" \
+                            -sz $spacingz \
+                            -in `ls -1 $STACKINGDIR/reslice/*.nii.gz`
+$PROGDIR/ConvertImageSeries -o "$STACKINGDIR/volume/mask/reslice_histo_mask.nii.gz" \
+                            -sz $spacingz \
+                            -in `ls -1 $STACKINGDIR/reslice/mask/*.nii.gz`
 
 $ANTSDIR/PermuteFlipImageOrientationAxes 3 \
         $STACKINGDIR/volume/reslice_histo.nii.gz \

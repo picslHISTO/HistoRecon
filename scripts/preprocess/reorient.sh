@@ -12,8 +12,6 @@
 # ==============================
 
 source ../common.sh
-spacingx=$RESPACEX
-spacingy=$RESPACEY
 spacingz=$HSPACEZ
 
 INPUTPATH=$GRAYDIR
@@ -40,9 +38,9 @@ done
 
 qblock "reorient"
 
-$PROGDIR/imageSeriesToVolume -o "$VOLUMEPATH/volume.nii.gz" \
-                             -sx $spacingx -sy $spacingy -sz $spacingz \
-                             -i `ls -1 $OUTPUTPATH/*.nii.gz | sort`
+$PROGDIR/ConvertImageSeries -o "$VOLUMEPATH/volume.nii.gz" \
+                           -sz $spacingz \
+                           -in `ls -1 $OUTPUTPATH/*.nii.gz`
 
 $ANTSDIR/PermuteFlipImageOrientationAxes 3 \
         $VOLUMEPATH/volume.nii.gz \
@@ -98,5 +96,4 @@ $C3DDIR/c3d $MRILABEL_OUTDIR/${MRILABEL_OUTNAME}.nii.gz \
 $C3DDIR/c3d $MRIMASK_OUTDIR/${MRIMASK_OUTNAME}.nii.gz \
             -orient RAI -origin 0x0x0mm \
             -o $MRIMASK_OUTDIR/${MRIMASK_OUTNAME}.nii.gz 
-
 

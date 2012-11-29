@@ -49,8 +49,11 @@ $ANTSDIR/WarpImageMultiTransform 3 "${MRILABEL_INDIR}/${MRILABEL_INNAME}.nii.gz"
 
 echo "Making MRI slices ..."
 
-$PROGDIR/ConvertImageSeries ${MRI_SLICE_OUTDIR} 3Ddeform_M2H_%05d.nii.gz ${MRI_VOLUME_OUTDIR}/3Ddeform_M2H.nii.gz 
-$PROGDIR/ConvertImageSeries ${MRILABEL_SLICE_OUTDIR} 3Ddeform_M2H_label_%05d.nii.gz ${MRILABEL_VOLUME_OUTDIR}/3Ddeform_M2H_label.nii.gz 
+$PROGDIR/ConvertImageSeries -in ${MRI_VOLUME_OUTDIR}/3Ddeform_M2H.nii.gz \
+                            -o ${MRI_SLICE_OUTDIR}/3Ddeform_M2H_%05d.nii.gz  
+
+$PROGDIR/ConvertImageSeries -in ${MRILABEL_SLICE_OUTDIR}/3Ddeform_M2H_label_%05d.nii.gz \
+                            -o ${MRILABEL_VOLUME_OUTDIR}/3Ddeform_M2H_label.nii.gz 
 
 # Get the information for spacing
 spacingx=$HSPACEX

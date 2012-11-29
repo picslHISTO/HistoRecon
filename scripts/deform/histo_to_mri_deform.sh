@@ -77,13 +77,13 @@ elif ((${M2H_DEFORM_DIM}==2)); then
   spacingy=$RESPACEY
   spacingz=$HSPACEZ
 
-  $PROGDIR/imageSeriesToVolume -o "${HISTO_VOLUME_OUTDIR}/inplane_H2M.nii.gz" \
-                               -sx $spacingx -sy $spacingy -sz $spacingz \
-                               -i `ls -1 ${HISTO_SLICE_OUTDIR}/*.nii.gz`
+  $PROGDIR/ConvertImageSeries -o "${HISTO_VOLUME_OUTDIR}/inplane_H2M.nii.gz" \
+                             -sz $spacingz \
+                             -in `ls -1 ${HISTO_SLICE_OUTDIR}/*.nii.gz`
 
-  $PROGDIR/imageSeriesToVolume -o "${HISTOMASK_VOLUME_OUTDIR}/inplane_H2M_mask.nii.gz" \
-                               -sx $spacingx -sy $spacingy -sz $spacingz \
-                               -i `ls -1 ${HISTOMASK_SLICE_OUTDIR}/*.nii.gz`
+  $PROGDIR/ConvertImageSeries -o "${HISTOMASK_VOLUME_OUTDIR}/inplane_H2M_mask.nii.gz" \
+                             -sz $spacingz \
+                             -in `ls -1 ${HISTOMASK_SLICE_OUTDIR}/*.nii.gz`
 
 
   $ANTSDIR/PermuteFlipImageOrientationAxes 3 \

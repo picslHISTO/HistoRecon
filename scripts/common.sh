@@ -19,6 +19,8 @@ function qblock
 # A function execute the script with qsub or bash
 function exe
 {
+  # exe qsub_jobname num_slots
+  # num_slots = the amount of memory you need for each job
   qname=$1
   pe=$2
   shift 2
@@ -81,6 +83,10 @@ mkdir -p $M2HDIR
 # Directory where the histology slices warped to mri are produced
 H2MDIR=$DATADIR/work/histo_to_mri
 mkdir -p $H2MDIR
+
+# Directory where the the histolgoy slices are warped to the mri (the indices are manually matched)
+MANUALDIR=$DATADIR/work/manual
+mkdir -p $MANUALDIR
 
 # Directory where the defomably warped mri slices are produced
 DEFORMDIR=$DATADIR/work/deform

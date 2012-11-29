@@ -9,6 +9,7 @@ step2=False
 step3=False
 step4=False
 step5=False
+manual=False
 
 if [[ $* == *all* ]]; then 
   step1=True
@@ -31,6 +32,9 @@ if [[ $* == *4* ]]; then
 fi
 if [[ $* == *5* ]]; then 
   step5=True
+fi
+if [[ $* == *manual* ]]; then 
+  manual=True
 fi
 
 source "`dirname $0`/common.sh"
@@ -55,6 +59,12 @@ if [[ $step3 == True ]]; then
   # Run the iterative histo-MRI registration
   bash init3D.sh
   bash itermatch.sh
+fi
+
+if [[ $manual == True ]]; then
+  cd $SCRIPTDIR/manMatch
+  # Run the slicewise registration between the manually selected histo and MRI blocks
+  bash manMatch.sh
 fi
 
 if [[ $step4 == True ]]; then

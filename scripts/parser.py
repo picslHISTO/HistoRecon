@@ -127,6 +127,16 @@ def main(argv=sys.argv):
       help='Gaussian smooth parameter for histology to mri transform',
       default = '2')
 
+  # histology-MRI manual match
+  parser.add_argument('--manual-histo-index', 
+      help='manual histology index (start end, requires 2 arguments)',
+      nargs = 2,
+      default = ['0','0'])
+  parser.add_argument('--manual-mri-index', 
+      help='manual mri index (start end, requires 2 arguments)',
+      nargs = 2,
+      default = ['0','0'])
+
   # MRI-histology deformable 
   parser.add_argument('--m2h-deform-dim', 
       help='mri to histology deformable registration dimension (2 (slicewise) / 3)',
@@ -210,12 +220,21 @@ def main(argv=sys.argv):
   f_out.writelines('RESPACEX=' + histo_spacing[0] + '\n')
   f_out.writelines('RESPACEY=' + histo_spacing[1] + '\n')
 
-
   f_out.writelines('# histology stacking recon parameters \n')
   f_out.writelines('STACKING_RECON_SEARCH_RANGE=' + args.histo_stacking_range + '\n')
   f_out.writelines('STACKING_RECON_PROG=' + args.histo_stacking_prog + '\n')
   f_out.writelines('STACKING_RECON_DOF=' + args.histo_stacking_dof + '\n')
 
+  # manual matching
+  f_out.writelines('# manual registration histology index' + '\n')
+  f_out.writelines('MANUAL_HISTO_INDEX_START=' + args.manual_histo_index[0] + '\n')
+  f_out.writelines('MANUAL_HISTO_INDEX_END=' + args.manual_histo_index[1] + '\n')
+
+  f_out.writelines('# manual registration histology index' + '\n')
+  f_out.writelines('MANUAL_MRI_INDEX_START=' + args.manual_mri_index[0] + '\n')
+  f_out.writelines('MANUAL_MRI_INDEX_END=' + args.manual_mri_index[1] + '\n')
+
+  # itermatch
   f_out.writelines('# itermatch \n')
   f_out.writelines('H2M_NUM_ITER=' + args.h2m_num_iter + '\n')
   f_out.writelines('M2H_PROG=' + args.m2h_prog + '\n')

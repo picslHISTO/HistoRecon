@@ -76,17 +76,15 @@ elif ((${M2H_DEFORM_DIM}==2)); then
   echo "Building a 3D volume [ $H2MDIR/volume/inplane_MR_to_histo.nii.gz ]"
 
   # Get the information for spacing
-  spacingx=$RESPACEX
-  spacingy=$RESPACEY
   spacingz=$HSPACEZ
 
-  $PROGDIR/imageSeriesToVolume -o "${MRI_VOLUME_OUTDIR}/inplane_M2H.nii.gz" \
-                               -sx $spacingx -sy $spacingy -sz $spacingz \
-                               -i `ls -1 ${MRI_SLICE_OUTDIR}/*.nii.gz`
+  $PROGDIR/ConvertImageSeries -o "${MRI_VOLUME_OUTDIR}/inplane_M2H.nii.gz" \
+                              -sz $spacingz \
+                              -in `ls -1 ${MRI_SLICE_OUTDIR}/*.nii.gz`
 
-  $PROGDIR/imageSeriesToVolume -o "${MRILABEL_VOLUME_OUTDIR}/inplane_M2H_label.nii.gz" \
-                               -sx $spacingx -sy $spacingy -sz $spacingz \
-                               -i `ls -1 ${MRILABEL_SLICE_OUTDIR}/*.nii.gz`
+  $PROGDIR/ConvertImageSeries -o "${MRILABEL_VOLUME_OUTDIR}/inplane_M2H_label.nii.gz"\
+                              -sz $spacingz \
+                              -in `ls -1 ${MRILABEL_SLICE_OUTDIR}/*.nii.gz`
 
   
   $ANTSDIR/PermuteFlipImageOrientationAxes 3 \
