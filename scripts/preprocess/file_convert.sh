@@ -47,6 +47,10 @@ elif (($maskflag == 0)); then
   mkdir -p $NIFTIDIR/mask
 fi
 
+# get the range of the image intensity for conversion
+# for ((i=0; i<${#imagefile[*]}; i++)); do
+#   min=`$C3DDIR/c2d $HISTO_RAWDIR/${imagefile[$i]} -info | awk '{print $}'`
+# done
 
 for ((i=0; i<${#imagefile[*]}; i++)); do
   ipad=`printf %05d $i`

@@ -99,10 +99,10 @@ def main(argv=sys.argv):
 
   # histology input resize, orientation, spacing and padding info
   parser.add_argument('--histo-resize-ratio', 
-      help='histology image resize ratio', 
+      help='histology image resize ratio, e.g. 5%', 
       default = '5%')
   parser.add_argument('--histo-pad-percent', 
-      help='histo pad percent',
+      help='histo pad percent, e.g. 30',
       default = '30')
 
   # stacking parameters

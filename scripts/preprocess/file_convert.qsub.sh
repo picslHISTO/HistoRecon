@@ -19,13 +19,22 @@ spacingx=$RESPACEX
 spacingy=$RESPACEY
 
 # 1. convert the image file 
-# export LD_LIBRARY_PATH=$MAGICKDIR/lib:$LD_LIBRARY_PATH
-export LD_LIBRARY_PATH=/home/pcook/grosspeople/research/imagemagick6.6.9-4/lib:$LD_LIBRARY_PATH
-
 # convert the input images to png format
-$MAGICKDIR/convert $HISTO_RAWDIR/${image} \
-                   -resize ${HISTO_RESIZE_RATIO} -type Grayscale \
-                   $PNGDIR/${image_outname}.png
+# Use c3d to convert directly
+# Decide whether it's multiple component
+mc=`$C3DDIR/c2d -mcs $HISTO_RAWDIR/${image} -info | awk -F'[#:]' '{print $2}'`
+if (($mc == 3));then
+  $C3DDIR/c2d -mcs $HISTO_RAWDIR/${image} \
+              -wsum 0.29900 0.58700 0.11400 \
+              -resample ${HISTO_RESIZE_RATIO} \
+              -spacing ${spacingx}x${spacingy}mm \
+              -o $NIFTIDIR/${image_outname}.nii.gz
+else
+  $C3DDIR/c2d $HISTO_RAWDIR/${image} \
+              -resample ${HISTO_RESIZE_RATIO} \
+              -spacing ${spacingx}x${spacingy}mm \
+              -o $NIFTIDIR/${image_outname}.nii.gz
+fi
 
 # when convert is not working, use matlab 
 # $MATLABDIR/matlab -nodesktop -nosplash -nojvm -r \
@@ -34,21 +43,12 @@ $MAGICKDIR/convert $HISTO_RAWDIR/${image} \
 #                   imwrite(imresize(rgb2gray(img),size_resize),'${PNGDIR}/${image_outname}.png');
 #                   quit;"
 
-# convert the png image to nii.gz image
-$C3DDIR/c2d $PNGDIR/${image_outname}.png \
-            -spacing ${spacingx}x${spacingy}mm \
-            -o $NIFTIDIR/${image_outname}.nii.gz
-
 # 2. convert the mask file 
 # if mask files are provided, convert the mask files
 if (($maskflag == 1)); then
   # get the resolution information from the image file
-  res=`$MAGICKDIR/identify -verbose $PNGDIR/${image_outname}.png | grep "Geometry" | sed -e "s/Geometry: //g" | sed -e "s/+0//g"`
-
-  # convert the input mask to png format
-  $MAGICKDIR/convert $HISTOMASK_RAWDIR/${mask} \
-                     -filter point -resize ${res}\! -type Grayscale \
-                     $PNGDIR/mask/${image_outname}_mask.png
+  res=`$C3DDIR/c2d $NIFTIDIR/${image_outname}.nii.gz \
+    -info | awk '{print $5 "x" $6}' | sed -e "s/[0-9x]//g"`
 
   # $MATLABDIR/matlab -nodesktop -nosplash -nojvm -r \
   #                 "img = imread('$HISTOMASK_RAWDIR/${mask}'); \
@@ -57,8 +57,9 @@ if (($maskflag == 1)); then
   #                 quit;"
 
   # convert the png mask to nii.gz mask
-  $C3DDIR/c2d $PNGDIR/mask/${image_outname}_mask.png \
+  $C3DDIR/c2d $HISTOMASK_RAWDIR/${mask} \
               -binarize \
+              -resample $res \
               -spacing ${spacingx}x${spacingy}mm \
               -o $NIFTIDIR/mask/${image_outname}_mask.nii.gz
 
