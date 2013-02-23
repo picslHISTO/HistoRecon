@@ -201,7 +201,7 @@ done
 nslices=`ls -1 $GRAYDIR | grep "\.nii\.gz" | wc -l`
 masks=(`ls -1 $MASKDIR | grep "\.nii\.gz" | sed -e "s/\.nii\.gz//"`)
 
-for ((i=0; i < nslices; i++)) 
+for ((i=0; i < $nslices; i++)) 
 do
 	ipad=`printf %05d $i`
 	mov=${slices[${i}]}

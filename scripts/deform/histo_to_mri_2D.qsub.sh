@@ -51,3 +51,5 @@ $ANTSDIR/WarpImageMultiTransform 2 "${HISTOMASK_SLICE_INDIR}/${histomaskslice}.n
                                    "${TX_DIR}/2Ddeform_H2M_${kpad}_Affine.txt" \
                                 -R "${MRI_SLICE_INDIR}/${mrislice}.nii.gz" \
                                 --use-NN
+
+
