@@ -48,7 +48,7 @@ fi
 if (($maskflag == 1)); then
   # get the resolution information from the image file
   res=`$C3DDIR/c2d $NIFTIDIR/${image_outname}.nii.gz \
-    -info | awk '{print $5 "x" $6}' | sed -e "s/[0-9x]//g"`
+    -info | awk '{print $5 $6}' | sed "s/,/x/g" | sed -e "s/[^0-9x]//g"`
 
   # $MATLABDIR/matlab -nodesktop -nosplash -nojvm -r \
   #                 "img = imread('$HISTOMASK_RAWDIR/${mask}'); \
