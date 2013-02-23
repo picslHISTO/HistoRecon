@@ -60,11 +60,11 @@ function ShortestPath()
 
   # Build the adjacency list from the alignment computations
   adjfile=$STACKINGDIR/paths/adjacency.txt
-  for moving in ${slices[*]}
+  for fixed in ${slices[*]}
   do
     local hops=0
     # get match between slice i and its 5 neighbours
-    for transfile in `grep "metric_ncor_.*_mov_${moving}" < $matchlist`
+    for transfile in `grep "metric_.*fix_${fixed}" < $matchlist`
     do
       # final metric value is 2nd line in file
       # (1st line is initial metric value)
@@ -74,8 +74,8 @@ function ShortestPath()
       then
         match="0.00"
       fi
-      fixed=`echo $transfile | sed -e "s/.*_fix_//" -e "s/_mov_.*//"`
-      echo $moving $fixed $match $hops
+      moving=`echo $transfile | sed -e "s/.*_mov_//" -e "s/.txt//"`
+      echo $fixed $moving $match $hops
       let hops=hops+1
     done
   done > $adjfile

@@ -39,7 +39,8 @@ cd $SCRIPTDIR/stacking
 for ((i=1; i < ${nfiles}; i=i+1))
 do
   # Get the moving image
-  moving=`head -n $i $listfile | tail -n 1`
+  fixed=`head -n $i $listfile | tail -n 1`
+  mask=`head -n $i $maskfile | tail -n 1`
   
   # Set the upper bound for the inner loop
   let k=i+$STACKING_RECON_SEARCH_RANGE;
@@ -52,8 +53,7 @@ do
   # Run the inner loop
   for ((j=$i+1; j<=$k; j=j+1))
   do
-     fixed=`head -n $j $listfile | tail -n 1`
-		 mask=`head -n $j $maskfile | tail -n 1`
+     moving=`head -n $j $listfile | tail -n 1`
 		
     exe "linear.fix_${fixed}_mov_${moving}" 1 linear.qsub.sh \
       $fixed $moving $mask 
