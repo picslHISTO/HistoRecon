@@ -8,6 +8,7 @@ mov=$1
 ref=$2
 mask=$3
 ipad=$4
+dim=2
 
 
 tx="linear_fix_${ref}_mov_${mov}"
@@ -16,15 +17,16 @@ tx="linear_fix_${ref}_mov_${mov}"
 if [[ ${STACKING_RECON_PROG} == "ANTS" ]]; then
 	# using ANTS (valid for both affine and deformable registration,
   # since accumulation file contains the affine and deformable transformations
-  $ANTSDIR/WarpImageMultiTransform 2 "$GRAYDIR/${mov}.nii.gz" \
-                                     "$STACKINGDIR/reslice/reslice_histo_slice${ipad}.nii.gz" \
-                                      $STACKINGDIR/accum/${tx}_Affine.txt \
-                                  -R "$GRAYDIR/${ref}.nii.gz" 
 
-  $ANTSDIR/WarpImageMultiTransform 2 "$MASKDIR/${mask}.nii.gz" \
-                                     "$STACKINGDIR/reslice/mask/reslice_histo_mask_slice${ipad}.nii.gz" \
-                                      $STACKINGDIR/accum/${tx}_Affine.txt \
-                                  -R "$GRAYDIR/${ref}.nii.gz" --use-NN
+  $ANTSDIR/antsApplyTransforms -d $dim -i $GRAYDIR/${mov}.nii.gz \
+                               -r $GRAYDIR/${ref}.nii.gz -n linear \
+                               -t $STACKINGDIR/accum/${tx}_0GenericAffine.mat \
+                               -o $STACKINGDIR/reslice/reslice_histo_slice${ipad}.nii.gz
+
+  $ANTSDIR/antsApplyTransforms -d $dim -i $MASKDIR/${mask}.nii.gz \
+                               -r $GRAYDIR/${ref}.nii.gz -n NearestNeighbor \
+                               -t $STACKINGDIR/accum/${tx}_0GenericAffine.mat \
+                               -o $STACKINGDIR/reslice/mask/reslice_histo_mask_slice${ipad}.nii.gz 
 
 elif [[ ${STACKING_RECON_PROG} == "FSL" ]]; then
 	# using FSL

@@ -7,6 +7,8 @@ source ../common.sh
 fixed=$1  # fixed image
 moving=$2  # moving image
 mask=$3 # fixed mask
+dim=2
+its=10000x10000x10000
 
 # Define the transformation file names
 tx="linear_fix_${fixed}_mov_${moving}"
@@ -24,34 +26,31 @@ if [[ ${STACKING_RECON_PROG} == "ANTS" ]]; then
   # using ANTS linear 
   if [[ ${STACKING_RECON_DOF} == 6 ]]; then
     echo "2D Affine registration (DOF = 6)"
-    $ANTSDIR/ANTS 2 \
-                 -m MI["$GRAYDIR/${fixed}.nii.gz","$GRAYDIR/${moving}.nii.gz",1,32] \
-                 -o "$STACKINGDIR/tx/${tx}_" \
-                 -x $MASKDIR/${mask}.nii.gz \
-                 -i 0 \
-                 --affine-metric-type CC \
-                 --MI-option 32x10000 \
-                 --number-of-affine-iterations 10000x10000x10000 \
-                 > "$OUTPUTDIR/linear_${tx}.txt"
+     $ANTSDIR/antsRegistration -d $dim \
+                      -r [ $GRAYDIR/${fixed}.nii.gz, $GRAYDIR/${moving}.nii.gz, 1 ] \
+                      -m CC[ $GRAYDIR/${fixed}.nii.gz, $GRAYDIR/${moving}.nii.gz, 1 ] \
+                      -t affine[ 0.1 ] \
+                      -c [$its,1.e-8,20]  \
+                      -s 4x2x1vox  \
+                      -f 6x4x2 -l 1 -o [$STACKINGDIR/tx/$tx] 
+     # > "$OUTPUTDIR/linear_${tx}.txt"
 
   elif (( ${STACKING_RECON_DOF} == 3 )); then
     echo "2D Rigid registration (DOF = 3)"
-    $ANTSDIR/ANTS 2 \
-                 -m MI["$GRAYDIR/${fixed}.nii.gz","$GRAYDIR/${moving}.nii.gz",1,32] \
-                 -o "$STACKINGDIR/tx/${tx}_" \
-                 -i 0 \
-                 --affine-metric-type CC \
-                 --MI-option 32x10000 \
-                 --number-of-affine-iterations 10000x10000x10000 \
-                 --rigid-affine true \
-                 > "$OUTPUTDIR/linear_${tx}.txt"
+     $ANTSDIR/antsRegistration -d $dim \
+                      -r [ $GRAYDIR/${fixed}.nii.gz, $GRAYDIR/${moving}.nii.gz, 1 ]  \
+                      -m CC[ $GRAYDIR/${fixed}.nii.gz, $GRAYDIR/${moving}.nii.gz, 1 ] \
+                      -t rigid[ 0.1 ] \
+                      -c [$its, 1.e-8, 20]  \
+                      -s 4x2x1vox  \
+                      -f 6x4x2 -l 1 -o [$STACKINGDIR/tx/${tx}_] 
+     # > "$OUTPUTDIR/linear_${tx}.txt"
   fi
 
-  $ANTSDIR/WarpImageMultiTransform 2 "$GRAYDIR/${moving}.nii.gz" \
-                                     "$STACKINGDIR/warp/${tx}.nii.gz" \
-                                     "$STACKINGDIR/tx/${tx}_Affine.txt" \
-                                  -R "$GRAYDIR/${fixed}.nii.gz"
-                  
+  $ANTSDIR/antsApplyTransforms -d $dim -i $GRAYDIR/${moving}.nii.gz \
+                               -r $GRAYDIR/${fixed}.nii.gz -n linear \
+                               -t $STACKINGDIR/tx/${tx}_0GenericAffine.mat \
+                               -o $STACKINGDIR/warp/${tx}.nii.gz
 
 elif [[ ${STACKING_RECON_PROG} == "FSL" ]]; then
   # FSL linear

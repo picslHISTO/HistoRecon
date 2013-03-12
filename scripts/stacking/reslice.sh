@@ -98,13 +98,15 @@ ShortestPath
 echo "Computing cumulative transforms"
 
 # Clear the accumulator directory
-rm -rf $STACKINGDIR/accum/*.txt
+rm -rf $STACKINGDIR/accum/*.mat
 
 # Create an identity transform for the reference slice
 if [[ ${STACKING_RECON_PROG} == "ANTS" ]]; then
 	# using ANTS
-  ls $STACKINGDIR/tx/* | grep ${REF_SLICE} | head -n 1 | tail -n 1 | xargs cat | sed -r "s/^Parameters:.*/Parameters:\ 1 \ 0 \ 0 \ 1 \ 0 \ 0/g" \
-    > "$STACKINGDIR/accum/linear_fix_${REF_SLICE}_mov_${REF_SLICE}_Affine.txt"
+  rand_file=`ls $STACKINGDIR/tx/* | grep ${REF_SLICE} | head -n 1 | tail -n 1`
+  $ANTSDIR/ComposeMultiTransform 2 \
+  "$STACKINGDIR/accum/linear_fix_${REF_SLICE}_mov_${REF_SLICE}_0GenericAffine.mat" \
+  $rand_file -i $rand_file
 else
 	# using FSL
 	echo -e "1 0 0 0\n0 1 0 0\n0 0 1 0\n0 0 0 1\n" \
@@ -119,15 +121,16 @@ Accumulate_ANTS()
   
 
 
-  local newtx="linear_fix_${REF_SLICE}_mov_${new}_Affine"
-  local pretx="linear_fix_${REF_SLICE}_mov_${pre}_Affine"
-  local inttx="linear_fix_${pre}_mov_${new}_Affine"
+  local newtx="linear_fix_${REF_SLICE}_mov_${new}_0GenericAffine"
+  local pretx="linear_fix_${REF_SLICE}_mov_${pre}_0GenericAffine"
+  local inttx="linear_fix_${pre}_mov_${new}_0GenericAffine"
 
   # intinvtx is the inverse transform of inttx
-  local intinvtx="linear_fix_${new}_mov_${pre}_Affine"
+  local intinvtx="linear_fix_${new}_mov_${pre}_0GenericAffine"
+  echo $newtx $pretx $inttx $intinvtx
 
-  if [ ! -f "$STACKINGDIR/accum/${newtx}.txt" ]; then
-    if [ ! -f "$STACKINGDIR/accum/${pretx}.txt" ]; then
+  if [ ! -f "$STACKINGDIR/accum/${newtx}.mat" ]; then
+    if [ ! -f "$STACKINGDIR/accum/${pretx}.mat" ]; then
       # Call up the chain
       Accumulate_ANTS ${pre}
     fi
@@ -135,18 +138,26 @@ Accumulate_ANTS()
     echo "Combining ${pretx} and ${inttx} to form ${newtx}"
 	
     # Use the inverse transform if the forward transform does not exist
-    if [ ! -f "$STACKINGDIR/tx/${inttx}.txt" ]; then
-    
+    if [ ! -f "$STACKINGDIR/tx/${inttx}.mat" ]; then
       # linear transform version
-      $ANTSDIR/ComposeMultiTransform 2 $STACKINGDIR/accum/${newtx}.txt \
-              -R  $STACKINGDIR/accum/linear_fix_${REF_SLICE}_mov_${REF_SLICE}_Affine.txt \
-              $STACKINGDIR/accum/${pretx}.txt \
-              -i $STACKINGDIR/tx/${intinvtx}.txt 
+      echo $ANTSDIR/ComposeMultiTransform 2 $STACKINGDIR/accum/${newtx}.mat \
+              -R  $STACKINGDIR/accum/linear_fix_${REF_SLICE}_mov_${REF_SLICE}_0GenericAffine.mat \
+              $STACKINGDIR/accum/${pretx}.mat \
+              -i $STACKINGDIR/tx/${intinvtx}.mat 
+      $ANTSDIR/ComposeMultiTransform 2 $STACKINGDIR/accum/${newtx}.mat \
+              -R  $STACKINGDIR/accum/linear_fix_${REF_SLICE}_mov_${REF_SLICE}_0GenericAffine.mat \
+              $STACKINGDIR/accum/${pretx}.mat \
+              -i $STACKINGDIR/tx/${intinvtx}.mat 
     
     else
-      $ANTSDIR/ComposeMultiTransform 2 $STACKINGDIR/accum/${newtx}.txt \
-              $STACKINGDIR/accum/${pretx}.txt \
-              $STACKINGDIR/tx/${inttx}.txt 
+      echo $ANTSDIR/ComposeMultiTransform 2 $STACKINGDIR/accum/${newtx}.mat \
+              -R  $STACKINGDIR/accum/linear_fix_${REF_SLICE}_mov_${REF_SLICE}_0GenericAffine.mat \
+              $STACKINGDIR/accum/${pretx}.mat \
+              $STACKINGDIR/tx/${inttx}.mat 
+      $ANTSDIR/ComposeMultiTransform 2 $STACKINGDIR/accum/${newtx}.mat \
+              -R  $STACKINGDIR/accum/linear_fix_${REF_SLICE}_mov_${REF_SLICE}_0GenericAffine.mat \
+              $STACKINGDIR/accum/${pretx}.mat \
+              $STACKINGDIR/tx/${inttx}.mat 
     fi
   fi
 }
@@ -184,6 +195,7 @@ do
 	
 	# Accumulate the linear transforms up to this point
 	if [[ ${STACKING_RECON_PROG} == "ANTS" ]]; then
+    echo $i
 		Accumulate_ANTS $i 
   elif [[ ${STACKING_RECON_PROG} == "FSL" ]]; then
 		Accumulate_FSL $i
