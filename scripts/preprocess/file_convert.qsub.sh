@@ -65,18 +65,18 @@ if (($maskflag == 1)); then
 
 # if no mask file is provided, extract mask by tools Atropos
 elif (($maskflag == 0)); then
-#   # use the whole image as the mask for the segmentation 
-#   $C3DDIR/c2d $NIFTIDIR/${image_outname}.nii.gz \
-#               -thresh 0 inf 1 0 \
-#               -o $NIFTIDIR/tmp/${image_outname}_id.nii.gz
-# 
-#   # do the segmentation
-#   $ANTSDIR/Atropos -a $NIFTIDIR/${image_outname}.nii.gz \
-#                    -d 2 \
-#                    -i KMeans[2] \
-#                    -x $NIFTIDIR/tmp/${image_outname}_id.nii.gz \
-#                    -m 1.0 \
-#                    -o $NIFTIDIR/mask/${image_outname}_mask.nii.gz 
+  # use the whole image as the mask for the segmentation 
+  $C3DDIR/c2d $NIFTIDIR/${image_outname}.nii.gz \
+              -thresh 0 inf 1 0 \
+              -o $NIFTIDIR/tmp/${image_outname}_id.nii.gz
+
+  # do the segmentation
+  $ANTSDIR/Atropos -a $NIFTIDIR/${image_outname}.nii.gz \
+                   -d 2 \
+                   -i KMeans[2] \
+                   -x $NIFTIDIR/tmp/${image_outname}_id.nii.gz \
+                   -m [0.5, 1x1] \
+                   -o $NIFTIDIR/mask/${image_outname}_mask.nii.gz 
 # 
 #   # create the mask for the registration
 #   $C3DDIR/c2d $NIFTIDIR/mask/${image_outname}_mask.nii.gz \
@@ -85,11 +85,11 @@ elif (($maskflag == 0)); then
 
   # use thresholding for the segmentation 
  
-  $C3DDIR/c2d $NIFTIDIR/${image_outname}.nii.gz \
-              -thresh 88% inf 0 1 \
-              -dilate 1 5x5vox \
-              -connected-components -thresh 1 1 1 0 \
-              -o $NIFTIDIR/mask/${image_outname}_mask.nii.gz 
+  # $C3DDIR/c2d $NIFTIDIR/${image_outname}.nii.gz \
+  #             -thresh 88% inf 0 1 \
+  #             -dilate 1 5x5vox \
+  #             -connected-components -thresh 1 1 1 0 \
+  #             -o $NIFTIDIR/mask/${image_outname}_mask.nii.gz 
 
   # Generate mask using levelset segmentation
   # $C3DDIR/c2d "$NIFTIDIR/${image_outname}.nii.gz" \
