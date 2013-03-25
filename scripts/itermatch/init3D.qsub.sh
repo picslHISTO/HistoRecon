@@ -70,15 +70,34 @@ $C3DDIR/c3d $HISTOHALF_DIR/histomask.nii.gz \
 
 # registration
 echo "Register the MRI half mask to the histo half mask"
-$ANTSDIR/ANTS 3 -m MI["$HISTOHALF_DIR/histomask_resample.nii.gz","$MRIHALF_DIR/mrimask.nii.gz",1,32] \
-                -o "$TX_DIR/init_" \
-                -i 0 \
-                --affine-metric-type MI \
-                --MI-option 8x32000 \
-                --number-of-affine-iterations 10000x10000
 
-$ANTSDIR/WarpImageMultiTransform 3 "$MRIHALF_DIR/mrimask.nii.gz" \
-                                   "$MRIHALF_DIR/mrimask_warped.nii.gz" \
-                                   "$TX_DIR/init_Affine.txt"  \
-                                -R "$HISTOHALF_DIR/histomask_resample.nii.gz"
+fix="$HISTOHALF_DIR/histomask_resample.nii.gz"
+mov="$MRIHALF_DIR/mrimask.nii.gz"
+tx="$TX_DIR/init" 
+target="$MRIHALF_DIR/mrimask_warped.nii.gz" 
+its=10000x10000x1000
+
+$ANTSDIR/antsRegistration -d 3 \
+                    -r [ $fix, $mov, 1 ] \
+                    -m MI[ $fix, $mov, 1, 32 ] \
+                    -t affine[ 0.2 ] \
+                    -c [$its,1.e-8,20]  \
+                    -s 4x2x1vox  \
+                    -f 6x4x2 -l 1 -o [ ${tx}_ ] 
+
+$ANTSDIR/antsApplyTransforms -d 3 -i $mov \
+                             -r $fix -n linear \
+                             -t ${tx}_0GenericAffine.mat \
+                             -o $target 
+# $ANTSDIR/ANTS 3 -m MI["$HISTOHALF_DIR/histomask_resample.nii.gz","$MRIHALF_DIR/mrimask.nii.gz",1,32] \
+#                 -o "$TX_DIR/init_" \
+#                 -i 0 \
+#                 --affine-metric-type MI \
+#                 --MI-option 8x32000 \
+#                 --number-of-affine-iterations 10000x10000
+# 
+# $ANTSDIR/WarpImageMultiTransform 3 "$MRIHALF_DIR/mrimask.nii.gz" \
+#                                    "$MRIHALF_DIR/mrimask_warped.nii.gz" \
+#                                    "$TX_DIR/init_Affine.txt"  \
+#                                 -R "$HISTOHALF_DIR/histomask_resample.nii.gz"
 

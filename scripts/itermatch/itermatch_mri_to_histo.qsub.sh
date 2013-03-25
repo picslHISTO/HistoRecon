@@ -16,6 +16,14 @@ MRI_OUTNAME=$8
 iter=$9
 MRI_INIT_TX=${10}
 
+fix="$HISTO_INDIR/${HISTO_INNAME}.nii.gz"
+mov="$MRI_INDIR/${MRI_INNAME}.nii.gz"
+mov_label="$MRILABEL_INDIR/${MRILABEL_INNAME}.nii.gz"
+target="$MRI_OUTDIR/${MRI_OUTNAME}.nii.gz"
+target_label="$MRI_OUTDIR/label/${MRI_OUTNAME}_label.nii.gz"
+its=10000x10000x10000
+tx="$MRI_OUTDIR/tx/${MRI_OUTNAME}"
+
 mkdir -p $MRI_OUTDIR/tx
 mkdir -p $MRI_OUTDIR/label
 mkdir -p $MRI_OUTDIR/slices
@@ -25,34 +33,43 @@ echo "Align MRI to histology volume..."
 
 if [[ ${M2H_PROG} == "ANTS_LINEAR" ]]; then
   if (( ${iter} == 1 )); then
-   $ANTSDIR/ANTS 3 -m MI["$HISTO_INDIR/${HISTO_INNAME}.nii.gz","$MRI_INDIR/${MRI_INNAME}.nii.gz",1,32] \
-                    -o "$MRI_OUTDIR/tx/${MRI_OUTNAME}_" \
-                    -a $M2HDIR/init/tx/init_Affine.txt  \
-                    -i 0 \
-                    --affine-metric-type MI \
-                    --MI-option 32x16000 \
-                    --number-of-affine-iterations 10000x10000x10000 
+   # $ANTSDIR/ANTS 3 -m MI["$HISTO_INDIR/${HISTO_INNAME}.nii.gz","$MRI_INDIR/${MRI_INNAME}.nii.gz",1,32] \
+   #                  -o "$MRI_OUTDIR/tx/${MRI_OUTNAME}_" \
+   #                  -a $M2HDIR/init/tx/init_Affine.txt  \
+   #                  -i 0 \
+   #                  --affine-metric-type MI \
+   #                  --MI-option 32x16000 \
+   #                  --number-of-affine-iterations 10000x10000x10000 
 
+     $ANTSDIR/antsRegistration -d 3 \
+                      -r [ $fix, $mov, 1] \
+                      -m MI[ $fix, $mov, 1, 32 ]  \
+                      -q $M2HDIR/init/tx/init_Affine.txt \
+                      -t affine[ 0.2 ] \
+                      -c [$its,1.e-8,20]  \
+                      -s 4x2x1vox  \
+                      -f 6x4x2 -l 1 -o [ ${tx}_ ] 
   else
 # initialize with previous iteration's affine transformation, but use original MR image
-    $ANTSDIR/ANTS 3 -m MI["$HISTO_INDIR/${HISTO_INNAME}.nii.gz","$MRI_INDIR/${MRI_INNAME}.nii.gz",1,32] \
-                    -o "$MRI_OUTDIR/tx/${MRI_OUTNAME}_" \
-                    -a ${MRI_INIT_TX} \
-                    -i 0 \
-                    --affine-metric-type MI \
-                    --MI-option 32x16000 \
-                    --number-of-affine-iterations 10000x10000x10000
-  fi
- $ANTSDIR/WarpImageMultiTransform 3 "$MRI_INDIR/${MRI_INNAME}.nii.gz" \
-                                     "$MRI_OUTDIR/${MRI_OUTNAME}.nii.gz" \
-                                     "$MRI_OUTDIR/tx/${MRI_OUTNAME}_Affine.txt" \
-                                  -R "$HISTO_INDIR/${HISTO_INNAME}.nii.gz"  
-                                  
+     $ANTSDIR/antsRegistration -d 3 \
+                      -r [ $fix, $mov, 1] \
+                      -m MI[ $fix, $mov, 1, 32 ]  \
+                      -q ${MRI_INIT_TX} \
+                      -t affine[ 0.2 ] \
+                      -c [$its,1.e-8,20]  \
+                      -s 4x2x1vox  \
+                      -f 6x4x2 -l 1 -o [ ${tx}_ ] 
+   fi
 
-  $ANTSDIR/WarpImageMultiTransform 3 "$MRILABEL_INDIR/${MRILABEL_INNAME}.nii.gz" \
-                                     "$MRI_OUTDIR/label/${MRI_OUTNAME}_label.nii.gz" \
-                                     "$MRI_OUTDIR/tx/${MRI_OUTNAME}_Affine.txt" \
-                                  -R "$HISTO_INDIR/${HISTO_INNAME}.nii.gz" --use-NN
+  $ANTSDIR/antsApplyTransforms -d 3 -i $mov \
+                               -r $fix -n linear \
+                               -t ${tx}_0GenericAffine.mat \
+                               -o $target
+
+  $ANTSDIR/antsApplyTransforms -d 3 -i $mov_label \
+                               -r $fix -n NearestNeighbor \
+                               -t ${tx}_0GenericAffine.mat \
+                               -o $target_label
 
 elif [[ ${M2H_PROG} == "FSL_LINEAR" ]]; then
   if ((${iter} == 1)); then

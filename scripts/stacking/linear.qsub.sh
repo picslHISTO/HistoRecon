@@ -29,7 +29,7 @@ if [[ ${STACKING_RECON_PROG} == "ANTS" ]]; then
      $ANTSDIR/antsRegistration -d $dim \
                       -r [ $GRAYDIR/${fixed}.nii.gz, $GRAYDIR/${moving}.nii.gz, 1 ] \
                       -m CC[ $GRAYDIR/${fixed}.nii.gz, $GRAYDIR/${moving}.nii.gz, 1 ] \
-                      -t affine[ 0.1 ] \
+                      -t affine[ 0.2 ] \
                       -c [$its,1.e-8,20]  \
                       -s 4x2x1vox  \
                       -f 6x4x2 -l 1 -o [$STACKINGDIR/tx/$tx] 
@@ -40,7 +40,7 @@ if [[ ${STACKING_RECON_PROG} == "ANTS" ]]; then
      $ANTSDIR/antsRegistration -d $dim \
                       -r [ $GRAYDIR/${fixed}.nii.gz, $GRAYDIR/${moving}.nii.gz, 1 ]  \
                       -m CC[ $GRAYDIR/${fixed}.nii.gz, $GRAYDIR/${moving}.nii.gz, 1 ] \
-                      -t rigid[ 0.1 ] \
+                      -t rigid[ 0.2 ] \
                       -c [$its, 1.e-8, 20]  \
                       -s 4x2x1vox  \
                       -f 6x4x2 -l 1 -o [$STACKINGDIR/tx/${tx}_] 
