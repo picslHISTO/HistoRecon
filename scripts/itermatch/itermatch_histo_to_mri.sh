@@ -39,7 +39,9 @@ qblock "H2M_reg"
   
 # Smooth the rigid transform
 echo "smoothing the rigid transform"
-python smooth_h2m_transforms.py $H2M_SMOOTH_SIGMA $HISTO_OUTDIR/tx $HISTO_OUTDIR/tx_smooth
+# python smooth_h2m_transforms.py $H2M_SMOOTH_SIGMA $HISTO_OUTDIR/tx $HISTO_OUTDIR/tx_smooth
+# FIXME: write a real smooth function, instead of copying files over
+cp $HISTO_OUTDIR/tx/*.mat $HISTO_OUTDIR/tx_smooth/*.mat
 
 for ((k=0; k < ${nslices}; k=k+1))
 do

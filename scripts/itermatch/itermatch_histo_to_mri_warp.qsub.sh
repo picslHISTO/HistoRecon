@@ -18,17 +18,32 @@ mrislice=${MRISLICE_INNAME}$kpad
 
 echo "Registering histo slice to MRI slice $kpad"
 
-$ANTSDIR/WarpImageMultiTransform 2 \
-        "$HISTOSLICE_INDIR/${histoslice}.nii.gz" \
-        "$HISTO_OUTDIR/reslice/inplane_H2M_slice${kpad}.nii.gz" \
-        "$HISTO_OUTDIR/tx_smooth/inplane_H2M_slice${kpad}_Affine.txt" \
-     -R "$MRISLICE_INDIR/${mrislice}.nii.gz"
+fix="$MRISLICE_INDIR/${mrislice}.nii.gz"
+mov="$HISTOSLICE_INDIR/${histoslice}.nii.gz" 
+tx="$HISTO_OUTDIR/tx_smooth/inplane_H2M_slice${kpad}_0GenericAffine.mat" 
+target="$HISTO_OUTDIR/reslice/inplane_H2M_slice${kpad}.nii.gz" 
+mov_mask="$HISTOSLICE_INDIR/mask/${histomaskslice}.nii.gz" 
+target_mask="$HISTO_OUTDIR/reslice/mask/inplane_H2M_mask_slice${kpad}.nii.gz" 
 
-#                                   "$HISTO_OUTDIR/tx/inplane_histo_to_MR_${kpad}_Warp.nii.gz" \
-$ANTSDIR/WarpImageMultiTransform 2 \
-        "$HISTOSLICE_INDIR/mask/${histomaskslice}.nii.gz" \
-        "$HISTO_OUTDIR/reslice/mask/inplane_H2M_mask_slice${kpad}.nii.gz" \
-        "$HISTO_OUTDIR/tx_smooth/inplane_H2M_slice${kpad}_Affine.txt" \
-     -R "$MRISLICE_INDIR/${mrislice}.nii.gz" --use-NN
-                                
-#                                   "$HISTO_OUTDIR/tx/inplane_histo_to_MR_${kpad}_Warp.nii.gz" \
+$ANTSDIR/antsApplyTransforms -d 2 -i $mov \
+                             -r $fix -n linear \
+                             -t ${tx}_0GenericAffine.mat \
+                             -o $target 
+$ANTSDIR/antsApplyTransforms -d 2 -i $mov_mask \
+                             -r $fix -n NearestNeighbor \
+                             -t ${tx}_0GenericAffine.mat \
+                             -o $target_mask 
+# $ANTSDIR/WarpImageMultiTransform 2 \
+#         "$HISTOSLICE_INDIR/${histoslice}.nii.gz" \
+#         "$HISTO_OUTDIR/reslice/inplane_H2M_slice${kpad}.nii.gz" \
+#         "$HISTO_OUTDIR/tx_smooth/inplane_H2M_slice${kpad}_Affine.txt" \
+#      -R "$MRISLICE_INDIR/${mrislice}.nii.gz"
+# 
+# #                                   "$HISTO_OUTDIR/tx/inplane_histo_to_MR_${kpad}_Warp.nii.gz" \
+# $ANTSDIR/WarpImageMultiTransform 2 \
+#         "$HISTOSLICE_INDIR/mask/${histomaskslice}.nii.gz" \
+#         "$HISTO_OUTDIR/reslice/mask/inplane_H2M_mask_slice${kpad}.nii.gz" \
+#         "$HISTO_OUTDIR/tx_smooth/inplane_H2M_slice${kpad}_Affine.txt" \
+#      -R "$MRISLICE_INDIR/${mrislice}.nii.gz" --use-NN
+#                                 
+# #                                   "$HISTO_OUTDIR/tx/inplane_histo_to_MR_${kpad}_Warp.nii.gz" \
