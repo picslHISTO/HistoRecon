@@ -65,7 +65,7 @@ do
 		HISTOMASK_SLICE_INNAME="inplane_H2M_mask_slice"
 
 
-    MRI_INIT_TX="$DATADIR/work/mri_to_histo/iter${previ}/tx/affine_MRI_to_histo_iter${previ}_Affine.txt"
+    MRI_INIT_TX="$DATADIR/work/mri_to_histo/iter${previ}/tx/affine_MRI_to_histo_iter${i}_0GenericAffine.mat"
 		MRI_OUTDIR="$DATADIR/work/mri_to_histo/iter${i}"
 		MRI_OUTNAME="affine_MRI_to_histo_iter${i}"
 		mkdir -p $MRI_OUTDIR

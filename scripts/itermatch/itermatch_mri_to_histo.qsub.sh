@@ -42,9 +42,8 @@ if [[ ${M2H_PROG} == "ANTS_LINEAR" ]]; then
    #                  --number-of-affine-iterations 10000x10000x10000 
 
      $ANTSDIR/antsRegistration -d 3 \
-                      -r [ $fix, $mov, 1] \
                       -m MI[ $fix, $mov, 1, 32 ]  \
-                      -q $M2HDIR/init/tx/init_Affine.txt \
+                      -r $M2HDIR/init/tx/init_0GenericAffine.mat \
                       -t affine[ 0.2 ] \
                       -c [$its,1.e-8,20]  \
                       -s 4x2x1vox  \
@@ -52,9 +51,8 @@ if [[ ${M2H_PROG} == "ANTS_LINEAR" ]]; then
   else
 # initialize with previous iteration's affine transformation, but use original MR image
      $ANTSDIR/antsRegistration -d 3 \
-                      -r [ $fix, $mov, 1] \
                       -m MI[ $fix, $mov, 1, 32 ]  \
-                      -q ${MRI_INIT_TX} \
+                      -r ${MRI_INIT_TX} \
                       -t affine[ 0.2 ] \
                       -c [$its,1.e-8,20]  \
                       -s 4x2x1vox  \

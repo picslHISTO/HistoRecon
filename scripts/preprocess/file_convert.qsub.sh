@@ -36,6 +36,10 @@ else
               -o $NIFTIDIR/${image_outname}.nii.gz
 fi
 
+# normalized the intensity
+
+
+
 # when convert is not working, use matlab 
 # $MATLABDIR/matlab -nodesktop -nosplash -nojvm -r \
 #                   "img = imread('$HISTO_RAWDIR/${image}'); 
