@@ -93,6 +93,9 @@ def main(argv=sys.argv):
   parser.add_argument('--magick-dir', 
       help='ImageMagick binary directory',
       required = True)
+  parser.add_argument('--matlab-dir', 
+      help='MATLAB binary directory',
+      required = True)
   parser.add_argument('--prog-dir', 
       help='program binary directory',
       default = os.path.abspath(os.path.join(scripts_dir,'../progs/bin')))
@@ -204,6 +207,7 @@ def main(argv=sys.argv):
   f_out.writelines('C3DDIR=' + args.c3d_dir + '\n')
   f_out.writelines('FSLDIR=' + args.fsl_dir + '\n')
   f_out.writelines('MAGICKDIR=' + args.magick_dir + '\n')
+  f_out.writelines('MATLABDIR=' + args.matlab_dir + '\n')
   f_out.writelines('PROGDIR=' + args.prog_dir + '\n')
 
   f_out.writelines('# histology resize and pad info \n')

@@ -48,12 +48,12 @@ let mri_pad=${mri_dim[2]}-${mri_ubound}
 echo "Create the half mask volume"
 $C3DDIR/c3d ${HISTOMASK_INDIR}/${HISTOMASK_INNAME}.nii.gz \
             -region 0x0x0vox ${histo_dim[0]}x${histo_dim[1]}x${histo_ubound}vox \
-            -pad 0x0x0vox 0x0x${histo_pad}vox \
+            -pad 0x0x0vox 0x0x${histo_pad}vox 0 \
             -o ${HISTOHALF_DIR}/histomask.nii.gz
 
 $C3DDIR/c3d ${MRIMASK_INDIR}/${MRIMASK_INNAME}.nii.gz \
             -region 0x0x0vox ${mri_dim[0]}x${mri_dim[1]}x${mri_ubound}vox \
-            -pad 0x0x0vox 0x0x${mri_pad}vox \
+            -pad 0x0x0vox 0x0x${mri_pad}vox 0 \
             -o ${MRIHALF_DIR}/mrimask.nii.gz
 
 
