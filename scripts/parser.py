@@ -85,7 +85,7 @@ def main(argv=sys.argv):
       required = True)
   parser.add_argument('--fsl-dir', 
       help='FSL binary directory',
-      required = True)
+      default = "")
 # may need to add a fsl scheme directory here in order for the fsl to work 
   parser.add_argument('--c3d-dir', 
       help='c3d binary directory',
@@ -95,7 +95,7 @@ def main(argv=sys.argv):
       required = True)
   parser.add_argument('--matlab-dir', 
       help='MATLAB binary directory',
-      required = True)
+      default = "")
   parser.add_argument('--prog-dir', 
       help='program binary directory',
       default = os.path.abspath(os.path.join(scripts_dir,'../progs/bin')))
