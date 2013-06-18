@@ -8,7 +8,7 @@ fixed=$1  # fixed image
 moving=$2  # moving image
 mask=$3 # fixed mask
 dim=2
-its=10000x10000x10000x0
+its=10000x10000x10000
 
 # Define the transformation file names
 tx="linear_fix_${fixed}_mov_${moving}"
