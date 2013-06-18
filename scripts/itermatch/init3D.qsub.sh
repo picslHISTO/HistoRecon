@@ -75,15 +75,15 @@ fix="$HISTOHALF_DIR/histomask_resample.nii.gz"
 mov="$MRIHALF_DIR/mrimask.nii.gz"
 tx="$TX_DIR/init" 
 target="$MRIHALF_DIR/mrimask_warped.nii.gz" 
-its=10000x10000x1000
+its=10000x10000
 
 $ANTSDIR/antsRegistration -d 3 \
                     -r [ $fix, $mov, 1 ] \
                     -m MI[ $fix, $mov, 1, 32 ] \
                     -t affine[ 0.2 ] \
                     -c [$its,1.e-8,20]  \
-                    -s 4x2x1vox  \
-                    -f 6x4x2 -l 1 -o [ ${tx}_ ] 
+                    -s 4x2vox  \
+                    -f 8x4 -l 1 -o [ ${tx}_ ] 
 
 $ANTSDIR/antsApplyTransforms -d 3 -i $mov \
                              -r $fix -n linear \
