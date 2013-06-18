@@ -81,11 +81,11 @@ elif (($maskflag == 0)); then
                    -x $NIFTIDIR/tmp/${image_outname}_id.nii.gz \
                    -m [0.5, 1x1] \
                    -o $NIFTIDIR/mask/${image_outname}_mask.nii.gz 
-# 
-#   # create the mask for the registration
-#   $C3DDIR/c2d $NIFTIDIR/mask/${image_outname}_mask.nii.gz \
-#               -thresh 1 1 1 0 \
-#               -o $NIFTIDIR/mask/${image_outname}_mask.nii.gz
+
+  # create the mask for the registration
+  $C3DDIR/c2d $NIFTIDIR/mask/${image_outname}_mask.nii.gz \
+              -thresh 1 1 1 0 \
+              -o $NIFTIDIR/mask/${image_outname}_mask.nii.gz
 
   # use thresholding for the segmentation 
  
