@@ -111,6 +111,6 @@ qblock "mri_histo_manual"
 echo "making the new histology volume"
 
 $PROGDIR/ConvertImageSeries -o ${MANUALDIR}/histo/volume_out/volume.nii.gz \
-                            -sz $mri_spacingz \
+                            -sz $histo_spacingz \
                             -in `ls ${MANUALDIR}/histo/slices_out/*.nii.gz`
 

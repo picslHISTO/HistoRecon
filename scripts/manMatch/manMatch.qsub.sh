@@ -15,7 +15,7 @@ mkdir -p $tx_dir
 $ANTSDIR/ANTS 2 \
              -m MI["$mri_dir/${mri_slice}.nii.gz","$histo_dir/${histo_slice}.nii.gz",1,32] \
              -o "$tx_dir/${tx_file}_" \
-             -i 40x0x0 \
+             -i 0x0x0 \
              --affine-metric-type MI \
              --MI-option 32x10000 \
              --number-of-affine-iterations 10000x10000x10000 
